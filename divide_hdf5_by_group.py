@@ -12,16 +12,15 @@ import math
 import matplotlib.pyplot as plt
 import pandas as pd
 import os
+import h5py as _h5py
+import numpy as _np
 
 import tools
 
 #Read in HDF5-File
 
-filename = sys.argv[1]
 
 
-import h5py as _h5py
-import numpy as _np
 
 def divide_hdf5_by_group_f(filename):
     # filename includes the path to the file and the filename itself.
@@ -43,4 +42,9 @@ def divide_hdf5_by_group_f(filename):
         filename_new = '%s_ori%d.hdf5' % (filename_old[:-5],df_group['group'].mean())
         tools.picasso_hdf5(df_group, filename_new, filename_old, path)
 
-divide_hdf5_by_group_f(filename)
+
+try:
+    filename = sys.argv[1]
+    divide_hdf5_by_group_f(filename)
+except:
+    pass
