@@ -31,40 +31,20 @@ def picasso_hdf5(df, hdf5_fname, hdf5_oldname, path):
     modified
     
     """
-    
-    labels = ['frame', 'x', 'y', 'photons', 'sx', 'sy', 'bg', 'lpx', 'lpy']
+
+    labels = list(df.keys())
     df_picasso = df.reindex(columns=labels, fill_value=1)
-    
-    LOCS_DTYPE = [
-        (labels[0], 'u4'),
-        (labels[1], 'f4'),
-        (labels[2], 'f4'),
-        (labels[3], 'f4'),
-        (labels[4], 'f4'),
-        (labels[5], 'f4'),
-        (labels[6], 'f4'),
-        (labels[7], 'f4'),
-        (labels[8], 'f4'),
-    ]
-    
-    locs = np.rec.array(
-        (df_picasso.frame, df_picasso.x, 
-         df_picasso.y,df_picasso.photons, 
-         df_picasso.sx, df_picasso.sy, 
-         df_picasso.bg, df_picasso.lpx, 
-         df_picasso.lpy), dtype=LOCS_DTYPE,
-        )
-    
-    '''
+    locs = df_picasso.to_records(index = False)
+
+
+    """
     Saving data
-    '''
+    """
     
     hf = h5py.File(path + hdf5_fname, 'w')
     hf.create_dataset('locs', data=locs)
     hf.close()
-    
-    #TODO: fix this
-    
+
     ''' 
     YAML Saver
     '''
