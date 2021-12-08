@@ -36,6 +36,9 @@ from sklearn.cluster import DBSCAN
 import math
 import matplotlib.pyplot as plt
 import pandas as pd
+import os
+
+import tools
 
 '''Read in Files'''
 
@@ -186,23 +189,40 @@ def rigid_transform_2D(A, B):
 
     return R, t
 
-
-for name, grouped1A_group in grouped1A:
+df2B = df2A.copy()
+print(df2B.head())
+list2B_xy = []
+for name, group_1A in grouped1A:
     # name: the grouped1A dataframe was created by grouping by the group column corresponding to the pick identifier. 
     #       name is thus the integer representing the current group in the loop.
-    # grouped1A_group is a dataframe containing only one group (with identifier name) of the complete grouped1A dataframe.
+    # 1A_group is a dataframe containing only one group (with identifier name) of the complete grouped1A dataframe.
     print(name)
     #print(grouped1A_group.head())
     
-    grouped1A_group_xy = np.transpose(np.array(grouped1A_group[['x','y']]))
-    grouped1B_group_xy = np.transpose(np.array(grouped1B[['x','y']].get_group(name)))
-    R,t = rigid_transform_2D(grouped1A_group_xy, grouped1B_group_xy)
-    print("R, t", R, t)
-    grouped2A_group_xy = np.transpose(np.array(grouped2A[['x','y']].get_group(name)))
+    group_1A_xy = np.transpose(np.array(group_1A[['x','y']]))
+    group_1B_xy = np.transpose(np.array(grouped1B[['x','y']].get_group(name)))
+    R,t = rigid_transform_2D(group_1A_xy, group_1B_xy)
+    #print("R, t", R, t)
+    group_2A_xy = np.transpose(np.array(grouped2A[['x','y']].get_group(name)))
 
-    grouped2B_group_xy = R @ grouped2A_group_xy + t
+    group_2B_xy = R @ group_2A_xy + t
+    #print(np.shape(group_2B_xy))
+    #print(np.shape(np.transpose(group_2B_xy)))
+    list2B_xy.extend(list(np.transpose(group_2B_xy)))
+    #print(np.shape(df2B_xy))
 
-    print(grouped2A_group_xy)
-    print(grouped2B_group_xy)
-    print()
-    
+print(df2A.head())
+print(df2B.head())
+
+df2B_xy = np.array(list2B_xy)
+df2B['x'] = df2B_xy[:,0]
+df2B['y'] = df2B_xy[:,1]
+
+print(df2A.head())
+print(df2B.head())
+
+
+df2B_filename = os.path.split(filename2A)[1]
+df2B_filename = df2B_filename[:-5] + "_avg-appl.hdf5"
+print(df2B_filename)
+tools.picasso_hdf5(df2B, df2B_filename, os.path.split(filename2A)[1], os.path.split(filename2A)[0] + "/")
