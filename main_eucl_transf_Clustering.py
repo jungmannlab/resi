@@ -108,7 +108,7 @@ else:
 eucl_transf_data = os.path.join(path,"eucl_transf/eucl_transf_data.xlsx")
 if os.path.isfile(eucl_transf_data) == True:
     ch13_files = glob.glob(os.path.join(path, "*.hdf5"))
-    ch1_files = sorted(file for file in ch13_files if data[0][1] in file and "ori" in file)
+    ch1_files = sorted(file for file in ch13_files if data[0][1] in file and "ori" in file and "ClusterD" not in file and "_resi_" not in file)
 
     ch3_files = []
     for ch1_file in ch1_files:
@@ -116,61 +116,51 @@ if os.path.isfile(eucl_transf_data) == True:
         ch3_files.append(ch3_file)
         #print("1", ch1_file)
         #print("3", ch3_file)
-    apply_eucl_transf_f(path, ch1_files, ch3_files)
+
+    check_aligned_file = os.path.split(ch3_files[-1])[1]
+    check_aligned_file = check_aligned_file[:-5] + "_aligned.hdf5"
+    if os.path.isfile(check_aligned_file) != True:
+        apply_eucl_transf_f(path, ch1_files, ch3_files)
 
 else:
     raise Exception("Euclidian transformation for channel alignment has not yet been determined.")
 
 
 
-"""
+'''Perform Clustering'''
+'''============================================================================'''
 
-def Clusterer_check(path, radius, min_cluster_size, filename_base):
+def Clusterer_check(path, radius, min_cluster_size, filename_base, i):
     Clusterer_filename_extension = "_ClusterD"+str(radius)+"_"+str(min_cluster_size)
     for file in glob.glob(os.path.join(path, "*.hdf5")): # searches all hdf5 files
-        #print()
-        #print(file)
-        #print("in for loop")
-        #print(type(file))
         
-        '''
-        if filename_base in file: 
-            print("true1")
-            print(file)
-            
-            if "picked" in file: 
-                print("true2")
-        print()
-        '''
-        
-        if filename_base in file and "picked" in file and Clusterer_filename_extension not in file and "ClusterD" not in file and "coupling" not in file and "_resi_" not in file: 
-           # print("--------------------------------")
-           # print()
+        if filename_base in file and "picked" in file and Clusterer_filename_extension not in file and "ClusterD" not in file and "coupling" not in file and "_resi_" not in file and "ori" in file: 
+            if (i == 0) or (i == 1 and "_aligned" in file):
             # check if file is part of the cell to be clustered (filename base in file)
             # do not apply clusterer to whole cell ("picked" in file)
             # check that the file itself is not a file produced by the clusterer itself (file does not contain ClusterD6_15 etc.)
-            npz_file = file + "_varsD" + str(radius) + "_" + str(min_cluster_size) + ".npz"
-            if os.path.isfile(npz_file) != True: 
-                # check that the file has not been clustered already
-                print("clusterer starts the file", file)
-                clusterer_resi(file, radius, min_cluster_size)
-                print("clusterer has finished the file", file)
-                print() 
+            
+                npz_file = file[:-5] + "_varsD" + str(radius) + "_" + str(min_cluster_size) + ".npz"
+                if os.path.isfile(npz_file) != True: 
+                    # check that the file has not been clustered already
+                    #print("clusterer starts the file", file)
+                    clusterer_resi(file, radius, min_cluster_size)
+                    #print("clusterer has finished the file", file)
+                    #print() 
                 
 '''Clusterer'''
-for protein_info in data: # loops over all elements (= lists)  
-    #print("Hallo")
+for i in range(len(data)):
+    protein_info = data[i]
     radius = protein_info[2]
     min_cluster_size = protein_info[3]
     filename_base = protein_info[1]
-    
-    print(protein_info[0])
-    
-    Clusterer_check(path, radius, min_cluster_size, filename_base)
+        
+    Clusterer_check(path, radius, min_cluster_size, filename_base, i)
 
 print("clusterer finished")  
-      
+
 '''Postprocessing '''  
+"""
 for protein_info in data:
 
     
