@@ -169,4 +169,3 @@ df.to_excel(folder_path + r'/eucl_transf/' + 'eucl_transf_' + 'data.xlsx')
 
 #TODO: save plots
 
-
