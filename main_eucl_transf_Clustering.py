@@ -24,7 +24,7 @@ from MainFunctions.find_eucl_transf_f import find_eucl_transf_f
 
 '''Please copy and paste the path to the folder containing the data that should be analyzed.'''
 path = r"W:\users\reinhardt\z.software\Git\RESI\RESI\test_files\main_eucl_transf_Clustering"
-
+# for testfiles: path = r"W:\users\reinhardt\z.software\Git\RESI\RESI\test_files\main_eucl_transf_Clustering"
 
 '''Please choose a value for the following two parameters.'''
 colocalization_radius = 25  # (in nm) This is the distance necessary for the Postprocessing script. 
@@ -39,6 +39,13 @@ data = [["R1", "R1_apicked", 4, 50],
 
 
 '''
+for testfiles use: 
+data = [["R1", "R1_apicked", 4, 50],
+        ["R3", "R3_apicked", 4, 50]]
+
+"""
+
+"""
 data = [["Protein1", "filename_base1", radius1, min_cluster_size1, olig_inter_protein_distance1],
         ["Protein2", "filename_base2", radius2, min_cluster_size2, olig_inter_protein_distance2]]
 
@@ -64,24 +71,35 @@ data = [["Protein1", "filename_base1", radius1, min_cluster_size1, olig_inter_pr
 if len(data) != 2:
     raise Exception("There must be data from exactly two channels!")
 
-# The transformation will be performed on the R4 sites in channel1 and channel 3
-path_alignment_picks = os.path.join(path,"alignment_picks")
+# Before running the code for finding the transformation, check if the output file
+# eucl_transf_data.xlsx already exists from a previous run of the code.
 
-ch13_files = glob.glob(os.path.join(path_alignment_picks, "*.hdf5"))
-ch1_files = sorted(file for file in ch13_files if data[0][1] in file)
+eucl_transf_data = os.path.join(path,"eucl_transf/eucl_transf_data.xlsx")
+if os.path.isfile(eucl_transf_data) != True: 
+    print("Find best Euclidian transformation for channel alignment")
+    # The transformation will be performed on the R4 sites in channel1 and channel 3
+    path_alignment_picks = os.path.join(path,"alignment_picks")
 
-# get the respective list for the ch3 files. 
-# Instead of extracting it in the same way from the ch13_files list
-# it will be created from the ch1_files list. If it would be extracted
-# from ch3_files, we might not notice if files in ch3 are missing.... 
-ch3_files = []
-for ch1_file in ch1_files:
-    ch3_file = ch1_file.replace(data[0][1], data[1][1])
-    ch3_files.append(ch3_file)
-    #print("1", ch1_file)
-    #print("3", ch3_file)
+    ch13_files = glob.glob(os.path.join(path_alignment_picks, "*.hdf5"))
+    ch1_files = sorted(file for file in ch13_files if data[0][1] in file)
 
-find_eucl_transf_f(path, ch1_files, ch3_files)
+    # get the respective list for the ch3 files. 
+    # Instead of extracting it in the same way from the ch13_files list
+    # it will be created from the ch1_files list. If it would be extracted
+    # from ch3_files, we might not notice if files in ch3 are missing.... 
+    ch3_files = []
+    for ch1_file in ch1_files:
+        ch3_file = ch1_file.replace(data[0][1], data[1][1])
+        ch3_files.append(ch3_file)
+        #print("1", ch1_file)
+        #print("3", ch3_file)
+
+    find_eucl_transf_f(path, ch1_files, ch3_files)
+
+else:
+    print("Euclidian transformation for channel alignment has already been determined.")
+
+
 
 
 
