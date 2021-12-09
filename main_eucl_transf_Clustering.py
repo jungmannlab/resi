@@ -11,6 +11,7 @@ import glob
 import os
 import os.path
 import itertools
+import pandas as pd
 
 
 from MainFunctions.Clusterer_resi_f import clusterer_resi
@@ -118,7 +119,7 @@ if os.path.isfile(eucl_transf_data) == True:
         #print("3", ch3_file)
 
     check_aligned_file = os.path.split(ch3_files[-1])[1]
-    check_aligned_file = check_aligned_file[:-5] + "_aligned.hdf5"
+    check_aligned_file = os.path.split(ch3_files[-1])[0] + "/" + check_aligned_file[:-5] + "_aligned.hdf5"
     if os.path.isfile(check_aligned_file) != True:
         apply_eucl_transf_f(path, ch1_files, ch3_files)
 

@@ -616,60 +616,31 @@ def clusterer_resi(hdf5_file, radius, min_cluster_size):
     import pandas as pd
     import numpy as _np
     
-    data = {'frame': data2_frames, 'x': data2_x, 'y': data2_y, 'photons': data2_photons, 'sx': data2_sx, 'sy': data2_sy, 'bg': data2_bg, 'lpx': data2_lpx,'lpy': data2_lpy, 'ellipticity': data2_ellipticity, 'net_gradient': data2_net_gradient, 'group': data2_group}
+    data_cl = {'frame': data2_frames, 'x': data2_x, 'y': data2_y, 'photons': data2_photons, 'sx': data2_sx, 'sy': data2_sy, 'bg': data2_bg, 'lpx': data2_lpx,'lpy': data2_lpy, 'ellipticity': data2_ellipticity, 'net_gradient': data2_net_gradient, 'group': data2_group}
     
     
-    df = pd.DataFrame(data, index=range(len(data2_x)))
-    
+    df = pd.DataFrame(data_cl, index=range(len(data2_x)))
+    df = df.astype({'frame': 'u4', 'x': 'f4', 'y': 'f4', 'photons': 'f4', 'sx': 'f4', 'sy': 'f4', 'bg': 'f4', 'lpx': 'f4','lpy': 'f4', 'ellipticity': 'f4', 'net_gradient': 'f4', 'group': 'u4'})
+
     df2 = df.reindex(columns = ['frame', 'x', 'y', 'photons', 'sx', 'sy', 'bg', 'lpx', 'lpy', 'ellipticity', 'net_gradient', 'group'], fill_value=1)
     
     path = os.path.split(filename)[0] + "/"
     filename_old = os.path.split(filename)[1]
     filename_new = '%s_ClusterD%s_%d.hdf5' % (filename_old[:-5], threshold_radius_str, cluster_size_threshold)
     tools.picasso_hdf5(df2, filename_new, filename_old, path)
-
-    
     """
     LOCS_DTYPE = [
-        ('frame', 'u4'),
-        ('x', 'f4'),
-        ('y', 'f4'),
-        ('group', 'u4'),
-        ('photons', 'f4'),
-        ('sx', 'f4'),
-        ('sy', 'f4'),
-        ('bg', 'f4'),
-        ('lpx', 'f4'),
-        ('lpy', 'f4')
-    ]
-    locs = _np.rec.array(
-        (df2.frame, df2.x, df2.y, df2.group, df2.photons, df2.sx, df2.sy, df2.bg, df2.lpx, df2.lpy), dtype=LOCS_DTYPE,
-    )
-    
-    '''
-    Saving data
-    '''
-    hf = _h5py.File('%s_ClusterD%s_%d.hdf5' % (filename, threshold_radius_str, cluster_size_threshold), 'w')
-    hf.create_dataset('locs', data=locs)
-    hf.close()
-    
-    
-    ''' 
-    YAML Saver
-    '''
-    
-    yaml_file_name = filename + '.yaml'
-    
-    yaml_file_info = open(yaml_file_name, 'r')
-    
-    yaml_file = yaml_file_info.read()
-    
-    yaml_file1 = open('%s_ClusterD%s_%d.yaml' %(filename, threshold_radius_str, cluster_size_threshold) , 'w')
-    yaml_file1.write(yaml_file)
-    yaml_file1.close()
+    ('frame', 'u4'),
+    ('x', 'f4'),
+    ('y', 'f4'),
+    ('group', 'u4'),
+    ('photons', 'f4'),
+    ('sx', 'f4'),
+    ('sy', 'f4'),
+    ('bg', 'f4'),
+    ('lpx', 'f4'),
+    ('lpy', 'f4')
     """
-        
-    
     e = timer()
     #print("save:", e-s) 
     
@@ -780,6 +751,9 @@ def clusterer_resi(hdf5_file, radius, min_cluster_size):
     data3_bg = group_means['bg'].values.tolist()
     data3_lpx = sed_xy.tolist()
     data3_lpy = sed_xy.tolist()
+    print(data['group'])
+    print(np.mean(np.array(data['group'])))
+    data3_group = np.full(shape = len(data3_lpy), fill_value = np.mean(np.array(data['group']))) # group of origami, not of clusters in origami
     data3_n = group_size.values.tolist()
     
     '''
@@ -789,13 +763,13 @@ def clusterer_resi(hdf5_file, radius, min_cluster_size):
     import pandas as pd
     import numpy as _np
     
-    data = {'frame': data3_frames, 'x': data3_x, 'y': data3_y, 'photons': data3_photons, 'sx': data3_sx, 'sy': data3_sy, 'bg': data3_bg, 'lpx': data3_lpx,'lpy': data3_lpy, 'n': data3_n}
+    data = {'frame': data3_frames, 'x': data3_x, 'y': data3_y, 'photons': data3_photons, 'sx': data3_sx, 'sy': data3_sy, 'bg': data3_bg, 'lpx': data3_lpx,'lpy': data3_lpy, 'group': data3_group, 'n': data3_n}
     
     
     
     df = pd.DataFrame(data, index=range(len(data3_x)))
-    
-    df3 = df.reindex(columns = ['frame', 'x', 'y', 'photons', 'sx', 'sy', 'bg', 'lpx', 'lpy', 'n'], fill_value=1)
+    df = df.astype({'frame': 'u4', 'x': 'f4', 'y': 'f4', 'photons': 'f4', 'sx': 'f4', 'sy': 'f4', 'bg': 'f4', 'lpx': 'f4','lpy': 'f4', 'group': 'u4'})
+    df3 = df.reindex(columns = ['frame', 'x', 'y', 'photons', 'sx', 'sy', 'bg', 'lpx', 'lpy', 'group', 'n'], fill_value=1)
     
     try:
         os.mkdir(os.path.split(filename)[0] + '/AdditionalOutputs')
@@ -809,47 +783,6 @@ def clusterer_resi(hdf5_file, radius, min_cluster_size):
     filename_new = '%s_resi_%s_%d.hdf5' % (filename_old[:-5], threshold_radius_str, cluster_size_threshold)
     tools.picasso_hdf5(df3, filename_new, filename_old, path)
 
-    """
-    LOCS_DTYPE = [
-        ('frame', 'u4'),
-        ('x', 'f4'),
-        ('y', 'f4'),
-        ('photons', 'f4'),
-        ('sx', 'f4'),
-        ('sy', 'f4'),
-        ('bg', 'f4'),
-        ('lpx', 'f4'),
-        ('lpy', 'f4'),
-        ('n', 'u4')
-    ]
-    locs = _np.rec.array(
-        (df3.frame, df3.x, df3.y, df3.photons, df3.sx, df3.sy, df3.bg, df3.lpx, df3.lpy, df3.n), dtype=LOCS_DTYPE,
-    )
-    
-    '''
-    Saving data
-    '''
-    
-    
-    hf = _h5py.File('%s_resi_%s_%d.hdf5' % (filename, threshold_radius_str, cluster_size_threshold), 'w')
-    hf.create_dataset('locs', data=locs)
-    hf.close()
-    
-    
-    ''' 
-    YAML Saver
-    '''
-    
-    yaml_file_name = filename[:-5] + '.yaml'
-    
-    yaml_file_info = open(yaml_file_name, 'r')
-    
-    yaml_file = yaml_file_info.read()
-    
-    yaml_file1 = open('%s_resi_%s_%d.yaml' % (filename, threshold_radius_str, cluster_size_threshold), 'w')
-    yaml_file1.write(yaml_file)
-    yaml_file1.close()      
-    """
 
     '''
     Save Shapiro results to csv file

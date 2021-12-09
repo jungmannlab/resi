@@ -71,8 +71,9 @@ import sys
 #from sklearn.cluster import DBSCAN
 import math
 from numba import cuda
-
 import os
+
+import tools
     
 '''Functions
 '''
@@ -180,15 +181,19 @@ import h5py
 
 def postprocessing_cross(protein1, protein2, npz_file1, npz_file2, resi_file1, resi_file2, colocalization_radius):
 
-    
+    import pandas as pd
+
     """load Resi files"""
     f1 = h5py.File(resi_file1, 'r')
     a_group_key = list(f1.keys())[0]
     resi1 = np.array(f1[a_group_key])
-    
+    df_resi1 = pd.DataFrame(resi1)
+
+
     f2 = h5py.File(resi_file2, 'r')
     a_group_key = list(f2.keys())[0]
     resi2 = np.array(f2[a_group_key])
+    df_resi2 = pd.DataFrame(resi2)
     
     
     
@@ -459,175 +464,22 @@ def postprocessing_cross(protein1, protein2, npz_file1, npz_file2, resi_file1, r
     #NNA = np.savetxt('%s_amount_Of_Neighbors_%s_to_%s.csv' %(filename2, protein2, protein1), amountOfNeighbors_data2_to_data1, delimiter= ',')
     
     
-    
-    """save Talin"""
-    data3_frames = resi1['frame']
-    data3_x = resi1['x']
-    data3_y = resi1['y']
-    data3_photons = resi1['photons']
-    data3_sx = resi1['sx']
-    data3_sy = resi1['sy']
-    data3_bg = resi1['bg']
-    data3_lpx = resi1['lpx']
-    data3_lpy = resi1['lpy']
-    data3_n = resi1['n']
-    data3_crossNND = NN_Talin_Kindlin
-    
-    '''
-    Generating hdf5 file for picasso render
-    '''
-    import h5py as _h5py
-    import pandas as pd
-    import numpy as _np
-    
-    data = {'frame': data3_frames, 'x': data3_x, 'y': data3_y, 'photons': data3_photons, 'sx': data3_sx, 'sy': data3_sy, 'bg': data3_bg, 'lpx': data3_lpx,'lpy': data3_lpy, 'n': data3_n, 'crossNND':data3_crossNND}
-    
-    
-    
-    df = pd.DataFrame(data, index=range(len(data3_x)))
-    
-    df3 = df.reindex(columns = ['frame', 'x', 'y', 'photons', 'sx', 'sy', 'bg', 'lpx', 'lpy', 'n', 'crossNND'], fill_value=1)
-    
-    LOCS_DTYPE = [
-        ('frame', 'u4'),
-        ('x', 'f4'),
-        ('y', 'f4'),
-        ('photons', 'f4'),
-        ('sx', 'f4'),
-        ('sy', 'f4'),
-        ('bg', 'f4'),
-        ('lpx', 'f4'),
-        ('lpy', 'f4'),
-        ('n', 'u4'),
-        ('crossNND', 'f4')
-    ]
-    locs = _np.rec.array(
-        (df3.frame, df3.x, df3.y, df3.photons, df3.sx, df3.sy, df3.bg, df3.lpx, df3.lpy, df3.n, df3.crossNND), dtype=LOCS_DTYPE,
-    )
-    
-    '''
-    Saving data
-    '''
-    
-    resi_file1 = resi_file1[0:len(resi_file1)-5]
-    hf = _h5py.File('%s_info.hdf5' % (resi_file1), 'w')
-    hf.create_dataset('locs', data=locs)
-    hf.close()
-    
-    
-    ''' 
-    YAML Saver
-    '''
-    
-    yaml_file_name = resi_file1 + '.yaml'
-    
-    yaml_file_info = open(yaml_file_name, 'r')
-    
-    yaml_file = yaml_file_info.read()
-    
-    yaml_file1 = open('%s_info.yaml' % (resi_file1), 'w')
-    yaml_file1.write(yaml_file)
-    yaml_file1.close()      
+    df_resi1['crossNND'] = NN_Talin_Kindlin
 
+    path = os.path.split(filename)[0] + "/"
+    filename_old = os.path.split(resi_file1)[1]
+    filename_new = '%s_info.hdf5' % (filename_old[:-5])
+    tools.picasso_hdf5(df_resi1, filename_new, filename_old, path)
     
     
     """save Kindlin"""
-    data3_frames = resi2['frame']
-    data3_x = resi2['x']
-    data3_y = resi2['y']
-    data3_photons = resi2['photons']
-    data3_sx = resi2['sx']
-    data3_sy = resi2['sy']
-    data3_bg = resi2['bg']
-    data3_lpx = resi2['lpx']
-    data3_lpy = resi2['lpy']
-    data3_n = resi2['n']
-    data3_crossNND = NN_Kindlin_Talin
-    
-    '''
-    Generating hdf5 file for picasso render
-    '''
-    import h5py as _h5py
-    import pandas as pd
-    import numpy as _np
-    
-    data = {'frame': data3_frames, 'x': data3_x, 'y': data3_y, 'photons': data3_photons, 'sx': data3_sx, 'sy': data3_sy, 'bg': data3_bg, 'lpx': data3_lpx,'lpy': data3_lpy, 'n': data3_n, 'crossNND': data3_crossNND}
-    
-    
-    
-    df = pd.DataFrame(data, index=range(len(data3_x)))
-    
-    df3 = df.reindex(columns = ['frame', 'x', 'y', 'photons', 'sx', 'sy', 'bg', 'lpx', 'lpy', 'n', 'crossNND'], fill_value=1)
-    
-    LOCS_DTYPE = [
-        ('frame', 'u4'),
-        ('x', 'f4'),
-        ('y', 'f4'),
-        ('photons', 'f4'),
-        ('sx', 'f4'),
-        ('sy', 'f4'),
-        ('bg', 'f4'),
-        ('lpx', 'f4'),
-        ('lpy', 'f4'),
-        ('n', 'u4'),
-        ('crossNND', 'f4')
-    ]
-    locs = _np.rec.array(
-        (df3.frame, df3.x, df3.y, df3.photons, df3.sx, df3.sy, df3.bg, df3.lpx, df3.lpy, df3.n, df3.crossNND), dtype=LOCS_DTYPE,
-    )
-    
-    '''
-    Saving data
-    '''
-    resi_file2 = resi_file2[0:len(resi_file2)-5]
-    hf = _h5py.File('%s_info.hdf5' % (resi_file2), 'w')
-    hf.create_dataset('locs', data=locs)
-    hf.close()
-    
-    
-    ''' 
-    YAML Saver
-    '''
-    
-    yaml_file_name = resi_file2 + '.yaml'
-    
-    yaml_file_info = open(yaml_file_name, 'r')
-    
-    yaml_file = yaml_file_info.read()
-    
-    yaml_file1 = open('%s_info.yaml' % (resi_file2), 'w')
-    yaml_file1.write(yaml_file)
-    yaml_file1.close()      
 
+    df_resi2['crossNND'] = NN_Kindlin_Talin
 
-    
-    
-    
-    
-    
-    
-    e=timer()
-    print("save:", e-s)   
-    #NNA.create_dataset('NNA_Data1', data=NN_Talin_T)
-    #if filename2.isnumeric == False:
-    #    NNA.create_dataset('NNA_Data2', data=NN_Kindlin_K)
-    #    NNA.create_dataset('NNA_Data2_To_Data1', data=NN_Kindlin_Talin)
-    #    NNA.create_dataset('NNA_Data1_To_Data2', data=NN_Talin_Kindlin)
-    
-    
-    
-    
-    # plt.scatter(x_coords,y_coords,c=amountOfNeighbors_talin,cmap='hot')
-    #plt.colorbar();
-    
-    #print(a_group_key)
-    
-    #print(len(x_com1))
-    
-    #print(data)
-    
-    end_all = timer()
-    print("total runtime:", end_all-start_all)
+    path = os.path.split(filename)[0] + "/"
+    filename_old = os.path.split(resi_file2)[1]
+    filename_new = '%s_info.hdf5' % (filename_old[:-5])
+    tools.picasso_hdf5(df_resi2, filename_new, filename_old, path)
 
 
 
