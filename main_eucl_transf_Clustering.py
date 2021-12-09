@@ -17,7 +17,7 @@ from MainFunctions.Clusterer_resi_f import clusterer_resi
 from MainFunctions.Cluster_PostProcessing_new_f import postprocessing
 from MainFunctions.Cluster_PostProcessing_new_f import postprocessing_cross
 from MainFunctions.find_eucl_transf_f import find_eucl_transf_f
-
+from MainFunctions.apply_eucl_transf_f import apply_eucl_transf_f
 '''Parameters'''
 '''============================================================================'''
 
@@ -100,6 +100,26 @@ else:
     print("Euclidian transformation for channel alignment has already been determined.")
 
 
+'''Apply euclidian transformation to R3 channel.'''
+'''============================================================================'''
+# Before running the code for finding the transformation, check if the output file
+# eucl_transf_data.xlsx already exists from a previous run of the code.
+
+eucl_transf_data = os.path.join(path,"eucl_transf/eucl_transf_data.xlsx")
+if os.path.isfile(eucl_transf_data) == True:
+    ch13_files = glob.glob(os.path.join(path, "*.hdf5"))
+    ch1_files = sorted(file for file in ch13_files if data[0][1] in file and "ori" in file)
+
+    ch3_files = []
+    for ch1_file in ch1_files:
+        ch3_file = ch1_file.replace(data[0][1], data[1][1])
+        ch3_files.append(ch3_file)
+        #print("1", ch1_file)
+        #print("3", ch3_file)
+    apply_eucl_transf_f(path, ch1_files, ch3_files)
+
+else:
+    raise Exception("Euclidian transformation for channel alignment has not yet been determined.")
 
 
 
