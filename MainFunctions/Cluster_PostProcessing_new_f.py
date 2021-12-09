@@ -441,17 +441,19 @@ def postprocessing_cross(protein1, protein2, npz_file1, npz_file2, resi_file1, r
     
     s=timer()    
 
-        
-    
-    np.savetxt('%s_coloc_Percentages_%s_to_%s.txt' %(filename2, protein2, protein1), Labeling_efficiency2_to_1, delimiter= ',')
-    np.savetxt('%s_coloc_Percentages_%s_to_%s.txt' %(filename, protein1, protein2), Labeling_efficiency1_to_2, delimiter= ',')
+    path =  os.path.split(filename)[0] + "/AdditionalOutputs/"
+    fname = path + os.path.split(filename)[1]
+    fname2 = path + os.path.split(filename2)[1]
+
+    np.savetxt('%s_coloc_Percentages_%s_to_%s.txt' %(fname2, protein2, protein1), Labeling_efficiency2_to_1, delimiter= ',')
+    np.savetxt('%s_coloc_Percentages_%s_to_%s.txt' %(fname, protein1, protein2), Labeling_efficiency1_to_2, delimiter= ',')
     
     #if filename2.isnumeric() == False:
-    NNA = np.savetxt('%s_Neighbor_distance_%s_to_%s.csv' %(filename, protein1, protein2), NN_Talin_Kindlin)
-    NNA = np.savetxt('%s_Neighbor_distance_%s_to_%s.csv' %(filename2, protein2, protein1), NN_Kindlin_Talin)
+    NNA = np.savetxt('%s_Neighbor_distance_%s_to_%s.csv' %(fname, protein1, protein2), NN_Talin_Kindlin)
+    NNA = np.savetxt('%s_Neighbor_distance_%s_to_%s.csv' %(fname2, protein2, protein1), NN_Kindlin_Talin)
     
-    NNA = np.savetxt('%s_higher_Neighbors_%s_to_%s.csv' %(filename2, protein2, protein1), higher_neighbors_kindlin_to_talin, delimiter= ',')
-    NNA = np.savetxt('%s_higher_Neighbors_%s_to_%s.csv' %(filename, protein1, protein2), higher_neighbors_talin_to_kindlin, delimiter= ',')
+    NNA = np.savetxt('%s_higher_Neighbors_%s_to_%s.csv' %(fname2, protein2, protein1), higher_neighbors_kindlin_to_talin, delimiter= ',')
+    NNA = np.savetxt('%s_higher_Neighbors_%s_to_%s.csv' %(fname, protein1, protein2), higher_neighbors_talin_to_kindlin, delimiter= ',')
     
     #NNA = np.savetxt('%s_amount_Of_Neighbors_%s_to_%s.csv' %(filename, protein1, protein2), amountOfNeighbors_data1_to_data2, delimiter= ',')
     #NNA = np.savetxt('%s_amount_Of_Neighbors_%s_to_%s.csv' %(filename2, protein2, protein1), amountOfNeighbors_data2_to_data1, delimiter= ',')
@@ -642,35 +644,12 @@ def postprocessing(protein, npz_file1, colocalization_radius):
     
     
     f1 = np.load(filename)
-    
-    #data = np.zeros((len(f1['new_com_x_cluster']),6))
-    
-    '''
-    s=timer()
-    for i in range(0,len(f1['new_com_x_cluster'])):
-        data[i][4] = f1['new_com_x_cluster'][i]
-        data[i][5] = f1['new_com_y_cluster'][i]
-    e = timer()
-    print("old import:", e-s) 
-    '''
-    
-    
-    #data_t = np.zeros((len(f1['new_com_x_cluster']),6))
+
     s=timer()
     x_com1 = f1['new_com_x_cluster']   
     y_com1 = f1['new_com_y_cluster']
     e = timer()
     print("new import:", e-s)
-    #len(x_com1)
-    #len(x_com2)
-    
-    '''
-    for i in range(0,len(f1['new_com_x_cluster'])):
-        if (data[i][4] != x_com[i]):
-            print(i, data[i][4], x_com[i])
-    '''
-    #Get data
-    
     
     
     NN_Talin_T = np.zeros(len(x_com1))
@@ -682,10 +661,6 @@ def postprocessing(protein, npz_file1, colocalization_radius):
     coloc_def = 0
     
     coloc_def = int(colocalization_radius)
-    
-    #if filename2.isnumeric() == True:
-    #    coloc_def = int(sys.argv[2])
-    
     
 
     
@@ -741,17 +716,7 @@ def postprocessing(protein, npz_file1, colocalization_radius):
     Labeling_efficiency2_to_1 = np.zeros(2)
     Labeling_efficiency2_to_1[0] = coloc_counter/len(NN_Talin_T)*100 # percentage of talins that have another talin as a neighbor within the coloc_def distance
                  
-    
-    
-    '''Kindlin2 calculation'''
-    
-    #higher order neighbors
-    
-    
-    #if filename2.isnumeric() == False:
-    
-   
-        
+
         
     
     
@@ -811,18 +776,21 @@ def postprocessing(protein, npz_file1, colocalization_radius):
     #os.chdir(r"W:\users\reinhardt")
     #print(os.getcwd())
 
-    print(filename)
+    #print(filename)
     s=timer()    
-    np.savetxt('%s_coloc_Percentage_%s.txt' %(filename, protein), Labeling_efficiency2_to_1, delimiter= ',')
+
+    path =  os.path.split(filename)[0] + "/AdditionalOutputs/"
+    fname = path + os.path.split(filename)[1]
+    np.savetxt('%s_coloc_Percentage_%s.txt' %(fname, protein), Labeling_efficiency2_to_1, delimiter= ',')
     
     #NNA = np.savetxt('%s_amount_Of_Neighbors_%s.csv' %(filename, protein), amountOfNeighbors_data1, delimiter= ',')
-    NNA = np.savetxt('%s_threshold_radii.csv' %filename, threshold_radius)
-    NNA = np.savetxt('%s_Neighbor_distance_%s.csv' %(filename, protein), NN_Talin_T)
+    NNA = np.savetxt('%s_threshold_radii.csv' %fname, threshold_radius)
+    NNA = np.savetxt('%s_Neighbor_distance_%s.csv' %(fname, protein), NN_Talin_T)
     
-    NNA = np.savetxt('%s_higher_Neighbors_%s.csv' %(filename, protein), higher_neighbors_Talin, delimiter= ',')
+    NNA = np.savetxt('%s_higher_Neighbors_%s.csv' %(fname, protein), higher_neighbors_Talin, delimiter= ',')
        
     e=timer()
-    print("save:", e-s)   
+    #print("save:", e-s)   
     #NNA.create_dataset('NNA_Data1', data=NN_Talin_T)
     #if filename2.isnumeric == False:
     #    NNA.create_dataset('NNA_Data2', data=NN_Kindlin_K)
@@ -842,4 +810,4 @@ def postprocessing(protein, npz_file1, colocalization_radius):
     #print(data)
     
     end_all = timer()
-    print("total runtime:", end_all-start_all)
+    #print("total runtime:", end_all-start_all)

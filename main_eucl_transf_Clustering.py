@@ -159,11 +159,12 @@ for i in range(len(data)):
 
 print("clusterer finished")  
 
-'''Postprocessing '''  
-"""
-for protein_info in data:
 
-    
+
+'''Postprocessing'''
+'''============================================================================'''
+
+for protein_info in data:
     protein = protein_info[0]
     radius = protein_info[2]
     min_cluster_size = protein_info[3]
@@ -172,13 +173,12 @@ for protein_info in data:
     #print(glob.glob(os.path.join(path, "*.npz")))
     for file_npz in glob.glob(os.path.join(path, "*.npz")):
         if filename_base in file_npz:
-            postprocess_hNN_file = file_npz + "_higher_Neighbors_" + protein + ".csv"
+
+            postprocess_hNN_file = os.path.split(file_npz)[0] + "/AdditionalOutputs/" + os.path.split(file_npz)[1] + "_higher_Neighbors_" + protein + ".csv"
             if os.path.isfile(postprocess_hNN_file) != True:
     
-                #postprocessing(os.path.join(path,file_npz), colocalization_radius)
                 postprocessing(protein, file_npz, colocalization_radius)
-                print("clusterer has finished the file", file_npz)
-                print()
+
 
 # cross correlation
 if len(data) > 1:
@@ -197,7 +197,7 @@ if len(data) > 1:
         for file_npz1 in glob.glob(os.path.join(path, "*.npz")):
             if filename_base1 in file_npz1 and "_varsD"+str(radius1)+"_"+str(min_cluster_size1) in file_npz1: # data 1 is from filename_base1 and the corresponding data2 file will be searched automatically
                 file_npz2 = file_npz1.replace(filename_base1, filename_base2)
-                file_npz2 = file_npz2.replace("_varsD"+str(radius1)+"_"+str(min_cluster_size1), "_varsD"+str(radius2)+"_"+str(min_cluster_size2))
+                file_npz2 = file_npz2.replace("_varsD"+str(radius1)+"_"+str(min_cluster_size1), "_aligned_varsD"+str(radius2)+"_"+str(min_cluster_size2))
                 #print("npz 1", file_npz1)
                 #print("npz 2", file_npz2)
                 
@@ -207,14 +207,11 @@ if len(data) > 1:
                 resi_file2 = file_npz2.replace("varsD", "resi_")
                 resi_file2 = resi_file2.replace("npz", "hdf5")
         
-                postprocess_hNN_file_ex_1 = file_npz1 + "_higher_Neighbors_" + protein1 + "_to_" + protein2 + ".csv"
-                postprocess_hNN_file_ex_2 = file_npz2 + "_higher_Neighbors_" + protein2 + "_to_" + protein1 + ".csv"
-                if os.path.isfile(postprocess_hNN_file_ex_1) != True or os.path.isfile(postprocess_hNN_file_ex_2) != True:
-                    print("do")
-                    #postprocessing(os.path.join(path,file_npz), colocalization_radius)
-                    postprocessing_cross(protein1, protein2, file_npz1, file_npz2, resi_file1, resi_file2, colocalization_radius)
-                    #print("clusterer has finished the file", file_npz)
-                    #print()
+                postprocess_hNN_file_ex_1 = os.path.split(file_npz1)[0] + "/AdditionalOutputs/" + os.path.split(file_npz1)[1] + "_higher_Neighbors_" + protein1 + "_to_" + protein2 + ".csv"
+                postprocess_hNN_file_ex_2 = os.path.split(file_npz2)[0] + "/AdditionalOutputs/" + os.path.split(file_npz2)[1] + "_higher_Neighbors_" + protein2 + "_to_" + protein1 + ".csv"
 
+                if os.path.isfile(postprocess_hNN_file_ex_1) != True or os.path.isfile(postprocess_hNN_file_ex_2) != True:
+                    postprocessing_cross(protein1, protein2, file_npz1, file_npz2, resi_file1, resi_file2, colocalization_radius)
+                    
+    
 print("postprocessing finished")
-"""
