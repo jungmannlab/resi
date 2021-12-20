@@ -16,6 +16,7 @@ from skimage import transform as tf
 import pandas as pd
 import h5py
 import os
+import re
 
 import tools
 
@@ -29,19 +30,31 @@ def apply_eucl_transf_f(folder_path, ch1_files, ch3_files):
     px_size = 130 # nm
 
     eucl_transf = pd.read_csv(os.path.join(folder_path,"eucl_transf/eucl_transf_data.csv"), delimiter='\t')
-    rot_array = eucl_transf['rotation'].to_numpy()
-    tr_array = np.array([eucl_transf['translation x'].to_numpy(), 
-                          eucl_transf['translation y'].to_numpy()]).T
+    picks_array = eucl_transf['pick'].to_numpy()
+    #rot_array = eucl_transf['rotation'].to_numpy()
+    #tr_array = np.array([eucl_transf['translation x'].to_numpy(), 
+    #                      eucl_transf['translation y'].to_numpy()]).T
 
 
     for i, (file1, file3) in enumerate(zip(ch1_files, ch3_files)):
+        match1 = re.search("ori(\d+)", file1)
+        match3 = re.search("ori(\d+)", file3)
+        if match1 and match3:
+            if match1.group(1) == match3.group(1):
+                pick = int(match1.group(1))
         
-        #print(i)
-        #print(os.path.split(file1)[1])
-        #print(os.path.split(file3)[1])
-        
-        # load the localizations for each channel
+            else:
+                raise Exception('Origamis from channel 1 and channel 3 are not assigned correctly to each other.')
+        else:
+            raise Exception('Origamis from channel 1 and channel 3 cannot be assigned to each other. Check if "ori" followed by a number is included in the filenames.')
+        #print(pick, "vs", picks_array[i])
 
+        transfo_i = eucl_transf.loc[eucl_transf['pick'] == pick]
+        angle = transfo_i['rotation'].values[0]
+        translation = np.array([transfo_i['translation x'].values[0], transfo_i['translation y'].values[0]])
+        transform = tf.EuclideanTransform(rotation=angle, translation=translation)
+        
+        
         ch1_fulltable = pd.read_hdf(file1, key = 'locs')    
         ch1_fulltable['x'] = ch1_fulltable['x']*px_size # convert to nm
         ch1_fulltable['y'] = ch1_fulltable['y']*px_size
@@ -69,10 +82,7 @@ def apply_eucl_transf_f(folder_path, ch1_files, ch3_files):
         ax[0].set_ylabel('y (nm)')
         ax[0].legend()
         
-        angle = rot_array[i]
-        translation = tr_array[i, :]
-        transform = tf.EuclideanTransform(rotation=angle, translation=translation)
-        
+
         ch3_locs_tr = transform(ch3_locs)
         
         ch3_fulltable['x'] = ch3_locs_tr[:, 0]
@@ -113,7 +123,7 @@ def apply_eucl_transf_f(folder_path, ch1_files, ch3_files):
         except OSError:
             print ("transf_overview folder already exists")
 
-        import re
+
         match = re.search("ori(\d+)", filename3_aligned)
         plt.savefig(folder_path + '/transf_overview/' + 'origami' + str(match.group(1)) + '.pdf', format='pdf')
         

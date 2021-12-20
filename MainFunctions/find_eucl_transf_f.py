@@ -15,11 +15,11 @@ import matplotlib.pyplot as plt
 from skimage import transform as tf
 import pandas as pd
 import os
+import re
 
 
 def find_eucl_transf_f(folder_path, ch1_files, ch3_files):
     plt.close('all')
-
 
     plt.close('all')
 
@@ -32,7 +32,17 @@ def find_eucl_transf_f(folder_path, ch1_files, ch3_files):
 
     for i, (file1, file3) in enumerate(zip(ch1_files, ch3_files)):
         
-        print(i)
+        match1 = re.search("ori(\d+)", file1)
+        match3 = re.search("ori(\d+)", file3)
+        if match1 and match3:
+            if match1.group(1) == match3.group(1):
+                pick = match1.group(1)
+
+            else:
+                raise Exception('Origamis from channel 1 and channel 3 are not assigned correctly to each other.')
+        else:
+            raise Exception('Origamis from channel 1 and channel 3 cannot be assigned to each other. Check if "ori" followed by a number is included in the filenames.')
+      
         
         # load the localizations for each channel
 
@@ -111,7 +121,7 @@ def find_eucl_transf_f(folder_path, ch1_files, ch3_files):
         # estimate best eucl transf
         transf_estimate = tf.EuclideanTransform()
         transf_estimate.estimate(B, A)
-        params = transf_estimate.rotation, transf_estimate.translation
+        params = pick, transf_estimate.rotation, transf_estimate.translation
         
         # transform the data with the opt params    
         data_est = transf_estimate(B)
@@ -131,25 +141,28 @@ def find_eucl_transf_f(folder_path, ch1_files, ch3_files):
         
         except OSError:
             print ("eucl_trasnf folder already exists")
-        
-        plt.savefig(folder_path + '/eucl_transf/' + 'origami' + str(i) + '.pdf', format='pdf')
+              
+        plt.savefig(folder_path + '/eucl_transf/' + 'origami' + str(pick) + '.pdf', format='pdf')
 
         # save the params in the list
         eucl_tr_params.append(params)
        
     # save the final eucl_tr_params list
 
+    picks = []
     angle = []
     tx = []
     ty = []
+    print("step 1")
     for i in range(len(eucl_tr_params)):
+        picks.append(eucl_tr_params[i][0])
+        angle.append(eucl_tr_params[i][1])
+        tx.append(eucl_tr_params[i][2][0])
+        ty.append(eucl_tr_params[i][2][1])
         
-        angle.append(eucl_tr_params[i][0])
-        tx.append(eucl_tr_params[i][1][0])
-        ty.append(eucl_tr_params[i][1][1])
-        
-    d = {'rotation':angle, 'translation x':tx, 'translation y':ty}
+    d = {'pick':picks, 'rotation':angle, 'translation x':tx, 'translation y':ty}
     df = pd.DataFrame(d)
+    print(df)
     df.to_csv(folder_path +  r'/eucl_transf/'+ 'eucl_transf_' + 'data.csv', sep='\t', encoding='utf-8')
     df.to_excel(folder_path + r'/eucl_transf/' + 'eucl_transf_' + 'data.xlsx') 
 

@@ -83,7 +83,7 @@ if os.path.isfile(eucl_transf_data) != True:
 
     ch13_files = glob.glob(os.path.join(path_alignment_picks, "*.hdf5"))
     ch1_files = sorted(file for file in ch13_files if data[0][1] in file)
-
+    #print(ch1_files)
     # get the respective list for the ch3 files. 
     # Instead of extracting it in the same way from the ch13_files list
     # it will be created from the ch1_files list. If it would be extracted
