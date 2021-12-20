@@ -132,7 +132,7 @@ def find_eucl_transf_f(folder_path, ch1_files, ch3_files):
         except OSError:
             print ("eucl_trasnf folder already exists")
         
-        plt.savefig(folder_path + '/eucl_transf/' + 'origami' + str(i), format='pdf')
+        plt.savefig(folder_path + '/eucl_transf/' + 'origami' + str(i) + '.pdf', format='pdf')
 
         # save the params in the list
         eucl_tr_params.append(params)

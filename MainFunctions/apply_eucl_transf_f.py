@@ -115,6 +115,6 @@ def apply_eucl_transf_f(folder_path, ch1_files, ch3_files):
 
         import re
         match = re.search("ori(\d+)", filename3_aligned)
-        plt.savefig(folder_path + '/transf_overview/' + 'origami' + str(match.group(1)), format='pdf')
+        plt.savefig(folder_path + '/transf_overview/' + 'origami' + str(match.group(1)) + '.pdf', format='pdf')
         
         #TODO: save in Picasso compatible dataframe
