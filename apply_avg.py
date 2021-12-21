@@ -189,6 +189,9 @@ def rigid_transform_2D(A, B):
 
 df2B = df2A.copy()
 list2B_xy = []
+if 'orientation' in df2B.keys():
+    list2B_xy_cross = []
+    
 for name, group_1A in grouped1A:
     # name: the grouped1A dataframe was created by grouping by the group column corresponding to the pick identifier. 
     #       name is thus the integer representing the current group in the loop.
@@ -203,11 +206,27 @@ for name, group_1A in grouped1A:
     group_2A_xy = np.transpose(np.array(grouped2A[['x','y']].get_group(name)))
     group_2B_xy = R @ group_2A_xy + t
     list2B_xy.extend(list(np.transpose(group_2B_xy)))
+    
+    if 'orientation' in df2B.keys():
+        group_2A_xy_cross = np.transpose(np.array(grouped2A[['crossNND_x','crossNND_y']].get_group(name)))
+        group_2B_xy_cross = R @ group_2A_xy_cross + t
+        list2B_xy_cross.extend(list(np.transpose(group_2B_xy_cross)))
+        
+        
+        
 
 
 df2B_xy = np.array(list2B_xy)
 df2B['x'] = df2B_xy[:,0]
 df2B['y'] = df2B_xy[:,1]
+
+if 'orientation' in df2B.keys():
+    df2B_xy_cross = np.array(list2B_xy_cross)
+    df2B['crossNND_x'] = df2B_xy_cross[:,0]
+    df2B['crossNND_y'] = df2B_xy_cross[:,1]
+
+    df2B['orientation_avg'] = tools.angle(df2B['x'], df2B['y'], df2B['crossNND_x'], df2B['crossNND_y'])
+
 
 df2B_filename = os.path.split(filename2A)[1]
 df2B_filename = df2B_filename[:-5] + "_avg-appl.hdf5"

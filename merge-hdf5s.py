@@ -13,9 +13,9 @@ import tools
 path = r"W:\users\reinhardt\z.software\Git\RESI\RESI\test_files\main_eucl_transf_Clustering"
 
 
-name_parts = ["R3_apicked", "ori", "aligned_resi", "info"]
+name_parts = ["R1_apicked", "ori", "resi", "info"]
 not_name_parts = ["merge"] 
-filename_merge = "R3_apicked_ori-all_aligned_resi_4_50_info_merge.hdf5"
+filename_merge = "R1_apicked_ori-all_aligned_resi_4_50_info_merge.hdf5"
 
 
 dataframe_all = pd.DataFrame()

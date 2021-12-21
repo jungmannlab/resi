@@ -112,7 +112,7 @@ def NNDs_kernel(x_com, y_com, higher_neighbors_data):
   
   
 @cuda.jit
-def NNDs_ex_kernel(x_com1, y_com1, x_com2, y_com2, higher_neighbors_data):
+def NNDs_ex_kernel(x_com1, y_com1, x_com2, y_com2, higher_neighbors_data, crossNND_partner_ID, crossNND_partner_x, crossNND_partner_y):
 
     i = cuda.grid(1)
     
@@ -129,10 +129,17 @@ def NNDs_ex_kernel(x_com1, y_com1, x_com2, y_com2, higher_neighbors_data):
             if z == 0:
                 if higher_neighbors_data[i][z] == 0:
                     higher_neighbors_data[i][z] = current_distance
+                    crossNND_partner_ID[i] = j
+                    crossNND_partner_x[i] = x_com2[j]
+                    crossNND_partner_y[i] = y_com2[j]
+
         
                 if current_distance < higher_neighbors_data[i][z]:
                     higher_neighbors_data[i][z] = current_distance
-                  
+                    crossNND_partner_ID[i] = j
+                    crossNND_partner_x[i] = x_com2[j]
+                    crossNND_partner_y[i] = y_com2[j]
+                    
             if z!= 0:
                 if higher_neighbors_data[i][z] == 0:
                     higher_neighbors_data[i][z] = current_distance
@@ -140,7 +147,7 @@ def NNDs_ex_kernel(x_com1, y_com1, x_com2, y_com2, higher_neighbors_data):
                 if current_distance < higher_neighbors_data[i][z] and current_distance > higher_neighbors_data[i][z-1]:
                     higher_neighbors_data[i][z] = current_distance
   
-  
+
     
 @cuda.jit
 def amountofNeighbors_kernel(x_com, y_com, amountOfNeighbors_data, threshold_radius):
@@ -284,7 +291,9 @@ def postprocessing_cross(protein1, protein2, npz_file1, npz_file2, resi_file1, r
     
     #if filename2.isnumeric() == False:
     higher_neighbors_kindlin_to_talin = np.zeros((len(x_com2),10),dtype=float) 
-    
+    crossNND_partner_ID_kindlin_to_talin = np.zeros(len(x_com2),dtype=int)
+    crossNND_partner_x_kindlin_to_talin = np.zeros(len(x_com2),dtype=float)
+    crossNND_partner_y_kindlin_to_talin = np.zeros(len(x_com2),dtype=float)
 
 
     #d_higher_neighbors_kindlin_to_talin = cuda.to_device(higher_neighbors_kindlin_to_talin)
@@ -293,7 +302,7 @@ def postprocessing_cross(protein1, protein2, npz_file1, npz_file2, resi_file1, r
     blockdim_1d = 32
     griddim_1d = len(x_com2)//blockdim_1d + 1
     
-    NNDs_ex_kernel[griddim_1d, blockdim_1d](d_x_com2, d_y_com2, d_x_com1, d_y_com1, higher_neighbors_kindlin_to_talin)
+    NNDs_ex_kernel[griddim_1d, blockdim_1d](d_x_com2, d_y_com2, d_x_com1, d_y_com1, higher_neighbors_kindlin_to_talin, crossNND_partner_ID_kindlin_to_talin, crossNND_partner_x_kindlin_to_talin, crossNND_partner_y_kindlin_to_talin)
     
     
     #higher_neighbors_kindlin_to_talin = d_higher_neighbors_kindlin_to_talin.copy_to_host()
@@ -320,7 +329,10 @@ def postprocessing_cross(protein1, protein2, npz_file1, npz_file2, resi_file1, r
     #if filename2.isnumeric() == False:
         
     higher_neighbors_talin_to_kindlin = np.zeros((len(x_com1),10),dtype=float) 
-    
+    crossNND_partner_ID_talin_to_kindlin = np.zeros(len(x_com1),dtype=int)
+    crossNND_partner_x_talin_to_kindlin = np.zeros(len(x_com1),dtype=float)
+    crossNND_partner_y_talin_to_kindlin = np.zeros(len(x_com1),dtype=float)
+
 
 
     #d_higher_neighbors_talin_to_kindlin = cuda.to_device(higher_neighbors_talin_to_kindlin)
@@ -329,7 +341,7 @@ def postprocessing_cross(protein1, protein2, npz_file1, npz_file2, resi_file1, r
     blockdim_1d = 32
     griddim_1d = len(x_com1)//blockdim_1d + 1
     
-    NNDs_ex_kernel[griddim_1d, blockdim_1d](d_x_com1, d_y_com1, d_x_com2, d_y_com2, higher_neighbors_talin_to_kindlin)
+    NNDs_ex_kernel[griddim_1d, blockdim_1d](d_x_com1, d_y_com1, d_x_com2, d_y_com2, higher_neighbors_talin_to_kindlin, crossNND_partner_ID_talin_to_kindlin, crossNND_partner_x_talin_to_kindlin, crossNND_partner_y_talin_to_kindlin)
     
     
     #higher_neighbors_talin_to_kindlin = d_higher_neighbors_talin_to_kindlin.copy_to_host()
@@ -464,7 +476,14 @@ def postprocessing_cross(protein1, protein2, npz_file1, npz_file2, resi_file1, r
     #NNA = np.savetxt('%s_amount_Of_Neighbors_%s_to_%s.csv' %(filename2, protein2, protein1), amountOfNeighbors_data2_to_data1, delimiter= ',')
     
     
+    
+    df_resi1['crossNND_ID'] = crossNND_partner_ID_talin_to_kindlin
+    df_resi1['crossNND_x'] = crossNND_partner_x_talin_to_kindlin
+    df_resi1['crossNND_y'] = crossNND_partner_y_talin_to_kindlin
     df_resi1['crossNND'] = NN_Talin_Kindlin
+    df_resi1['orientation'] = tools.angle(df_resi1['x'], df_resi1['y'], df_resi1['crossNND_x'], df_resi1['crossNND_y'])
+
+
 
     path = os.path.split(filename)[0] + "/"
     filename_old = os.path.split(resi_file1)[1]
@@ -474,7 +493,13 @@ def postprocessing_cross(protein1, protein2, npz_file1, npz_file2, resi_file1, r
     
     """save Kindlin"""
 
+    df_resi2['crossNND_ID'] = crossNND_partner_ID_kindlin_to_talin
+    df_resi2['crossNND_x'] = crossNND_partner_x_kindlin_to_talin
+    df_resi2['crossNND_y'] = crossNND_partner_y_kindlin_to_talin
     df_resi2['crossNND'] = NN_Kindlin_Talin
+    df_resi2['orientation'] = tools.angle(df_resi2['x'], df_resi2['y'], df_resi2['crossNND_x'], df_resi2['crossNND_y'])
+
+    
 
     path = os.path.split(filename)[0] + "/"
     filename_old = os.path.split(resi_file2)[1]
@@ -630,7 +655,11 @@ def postprocessing(protein, npz_file1, colocalization_radius):
 
     #print(filename)
     s=timer()    
-
+    try:
+        os.mkdir(os.path.split(filename)[0] + '/AdditionalOutputs')
+    
+    except OSError:
+        print ("AdditionalOutputs folder already exists")
     path =  os.path.split(filename)[0] + "/AdditionalOutputs/"
     fname = path + os.path.split(filename)[1]
     np.savetxt('%s_coloc_Percentage_%s.txt' %(fname, protein), Labeling_efficiency2_to_1, delimiter= ',')
