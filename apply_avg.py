@@ -227,6 +227,7 @@ if 'orientation' in df2B.keys():
 
     df2B['orientation_avg'] = tools.angle(df2B['x'], df2B['y'], df2B['crossNND_x'], df2B['crossNND_y'])
 
+df2B['Origami_ID'] = df2B['group']
 
 df2B_filename = os.path.split(filename2A)[1]
 df2B_filename = df2B_filename[:-5] + "_avg-appl.hdf5"
