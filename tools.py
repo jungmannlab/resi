@@ -117,12 +117,13 @@ def get_resi_locs(files, K):
     resi_locs = {}
     
     for i, file in enumerate(files):
-        data[str(i)] = pd.read_hdf(file, key='locs')
+        data[str(i)] = pd.read_hdf(file, key='locs') # read every channel (file)
         
     for key in data.keys():
         
         ngroups[key] = data[key]['group'].max()+1 # TO DO: 0-index the groups so they're easier to iterate 
         
+        # initalize a list with the subgroup property
         subgrouplist = ['empty']*data[key].shape[0]
         data[key]['subgroup'] = subgrouplist
 
@@ -137,10 +138,10 @@ def get_resi_locs(files, K):
                 
                 # random choice of size K
                 subsets_id = np.random.choice(indexes, size=K, replace=False) 
-                indexes = [i for i in indexes if i not in subsets_id]
+                indexes = [i for i in indexes if i not in subsets_id] # remove already chosen indexes
                 data[key].loc[subsets_id, 'subgroup'] = j # assign a subgroup label   
                 
-        grouped_locs = data[key].groupby(['group', 'subgroup'])
-        resi_locs[key] = grouped_locs.mean()
+        grouped_locs = data[key].groupby(['group', 'subgroup']) # group localizations by group-subgroup
+        resi_locs[key] = grouped_locs.mean() # calculate mean by group-subgroup and obtain resi data
     
     return resi_locs, data
