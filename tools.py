@@ -7,6 +7,7 @@ Created on Wed Dec  8 11:47:08 2021
 """
 
 import numpy as np
+import pandas as pd
 import h5py
 
 
@@ -92,3 +93,54 @@ def picasso_hdf5(df, hdf5_fname, hdf5_oldname, path):
     yaml_newfile.close()   
     
     print('New Picasso-compatible .hdf5 file and .yaml file successfully created.')
+    
+    
+def get_resi_locs(files, K):
+    
+    """
+    input:
+        
+        files: must be a list of strings containing the file names by channel
+        K: number of localizations to be averaged to obtain each resi 
+        localization
+    
+    output: 
+        
+        data: a data frame with the localizations with one extra property, 
+              the 'subgroup'
+        resi_locs: a data frame with the resi localizations obtained by 
+                   averaging in the subgroups
+    """
+    
+    data = {}
+    ngroups = {}
+    resi_locs = {}
+    
+    for i, file in enumerate(files):
+        data[str(i)] = pd.read_hdf(file, key='locs')
+        
+    for key in data.keys():
+        
+        ngroups[key] = data[key]['group'].max()+1 # TO DO: 0-index the groups so they're easier to iterate 
+        
+        subgrouplist = ['empty']*data[key].shape[0]
+        data[key]['subgroup'] = subgrouplist
+
+        for i in range(1, ngroups[key]): 
+            
+            cluster = data[key].loc[data[key]['group'] == i] # get the table of cluster i   
+            indexes = cluster.index # get the (general) indexes of the localizations in this cluster
+            nlocs = cluster.shape[0] # get the number of localizations in cluster i
+            nsubsets = int(nlocs/K) # get number of subsets, given K
+
+            for j in range(nsubsets):
+                
+                # random choice of size K
+                subsets_id = np.random.choice(indexes, size=K, replace=False) 
+                indexes = [i for i in indexes if i not in subsets_id]
+                data[key].loc[subsets_id, 'subgroup'] = j # assign a subgroup label   
+                
+        grouped_locs = data[key].groupby(['group', 'subgroup'])
+        resi_locs[key] = grouped_locs.mean()
+    
+    return resi_locs, data
