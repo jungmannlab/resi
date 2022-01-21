@@ -1,0 +1,232 @@
+Byte Order: <
+Camera: HamamatsuHam_DCAM
+Data Type: uint16
+File: W:\users\steen\z.microscopy_raw\02_Project_RESI\211121_RESI_newVoyager_FusionBT_R1R3_nodel\R1_5pr_700pM_R4_700pM_52mW_pcapcdtx_1\R1_5pr_700pM_R4_700pM_52mW_pcapcdtx_1_MMStack_Default.ome.tif
+Frames: 30000
+Height: 576
+Micro-Manager Acquisiton Comments:
+- New Voyager Fusion BT R1 (5 prime) 700 pM R4 700 pM pca pcd tx 52mW
+Micro-Manager Metadata:
+  Binning: 2
+  BitDepth: 16
+  Camera: HamamatsuHam_DCAM
+  ChannelIndex: 0
+  Core-AutoFocus: PFS
+  Core-AutoShutter: '1'
+  Core-Camera: HamamatsuHam_DCAM
+  Core-ChannelGroup: ''
+  Core-Focus: ''
+  Core-Galvo: ''
+  Core-ImageProcessor: ''
+  Core-Initialize: '1'
+  Core-SLM: ''
+  Core-Shutter: Turret1Shutter
+  Core-TimeoutMs: '5000'
+  Core-XYStage: ''
+  DiaLamp-Intensity: '229'
+  DiaLamp-State: '0'
+  ElapsedTime-ms: 847.0
+  Exposure-ms: 100.04063235294117
+  FileName: R1_5pr_700pM_R4_700pM_52mW_pcapcdtx_1_MMStack_Default.ome.tif
+  FilterTurret1-Label: 1-
+  FilterTurret1-State: '0'
+  Frame: 0
+  FrameIndex: 0
+  HamamatsuHam_DCAM-Binning: 2x2
+  HamamatsuHam_DCAM-Bits per Channel: '16'
+  HamamatsuHam_DCAM-CCDTemperature: '-8.0000'
+  HamamatsuHam_DCAM-CONVERSION FACTOR COEFF: '0.0000'
+  HamamatsuHam_DCAM-CONVERSION FACTOR OFFSET: '0.0000'
+  HamamatsuHam_DCAM-Camera Bus: USB3
+  HamamatsuHam_DCAM-Camera Version: '1.10'
+  HamamatsuHam_DCAM-CameraID: 'S/N: 500017'
+  HamamatsuHam_DCAM-CameraName: C15440-20UP
+  HamamatsuHam_DCAM-DEFECT CORRECT MODE: 'ON'
+  HamamatsuHam_DCAM-Description: Hamamatsu device adapter 2.0.0.58
+  HamamatsuHam_DCAM-EXPOSURE FULL RANGE: DISABLE
+  HamamatsuHam_DCAM-EXPOSURE TIME UNITS: MILLISECONDS
+  HamamatsuHam_DCAM-Exposure: '100.04'
+  HamamatsuHam_DCAM-HOT PIXEL CORRECT LEVEL: STANDARD
+  HamamatsuHam_DCAM-INTERNAL LINE INTERVAL: '0.0000'
+  HamamatsuHam_DCAM-INTERNAL LINE INTERVAL UNITS: MILLISECONDS
+  HamamatsuHam_DCAM-INTERNAL LINE SPEED: '0.0000'
+  HamamatsuHam_DCAM-INTERNAL LINE SPEED UNITS: METERS PER SECOND
+  HamamatsuHam_DCAM-MASTER PULSE BURST TIMES: '1'
+  HamamatsuHam_DCAM-MASTER PULSE INTERVAL: '0.1000'
+  HamamatsuHam_DCAM-MASTER PULSE MODE: CONTINUOUS
+  HamamatsuHam_DCAM-MASTER PULSE TRIGGER SOURCE: EXTERNAL
+  HamamatsuHam_DCAM-MINIMUM ACQUISITION TIMEOUT: '60000'
+  HamamatsuHam_DCAM-Name: HamamatsuHam_DCAM
+  HamamatsuHam_DCAM-OUTPUT TRIGGER DELAY UNITS: SECONDS
+  HamamatsuHam_DCAM-OUTPUT TRIGGER DELAY[0]: '0.0000'
+  HamamatsuHam_DCAM-OUTPUT TRIGGER DELAY[1]: '0.0000'
+  HamamatsuHam_DCAM-OUTPUT TRIGGER DELAY[2]: '0.0000'
+  HamamatsuHam_DCAM-OUTPUT TRIGGER KIND[0]: LOW
+  HamamatsuHam_DCAM-OUTPUT TRIGGER KIND[1]: LOW
+  HamamatsuHam_DCAM-OUTPUT TRIGGER KIND[2]: LOW
+  HamamatsuHam_DCAM-OUTPUT TRIGGER PERIOD UNITS: SECONDS
+  HamamatsuHam_DCAM-OUTPUT TRIGGER PERIOD[0]: '0.0010'
+  HamamatsuHam_DCAM-OUTPUT TRIGGER PERIOD[1]: '0.0010'
+  HamamatsuHam_DCAM-OUTPUT TRIGGER PERIOD[2]: '0.0010'
+  HamamatsuHam_DCAM-OUTPUT TRIGGER POLARITY[0]: NEGATIVE
+  HamamatsuHam_DCAM-OUTPUT TRIGGER POLARITY[1]: NEGATIVE
+  HamamatsuHam_DCAM-OUTPUT TRIGGER POLARITY[2]: NEGATIVE
+  HamamatsuHam_DCAM-OUTPUT TRIGGER PRE HSYNC COUNT: '0'
+  HamamatsuHam_DCAM-OUTPUT TRIGGER SOURCE[0]: READOUT END
+  HamamatsuHam_DCAM-OUTPUT TRIGGER SOURCE[1]: READOUT END
+  HamamatsuHam_DCAM-OUTPUT TRIGGER SOURCE[2]: READOUT END
+  HamamatsuHam_DCAM-PixelType: 16bit
+  HamamatsuHam_DCAM-READOUT DIRECTION: FORWARD
+  HamamatsuHam_DCAM-ReadoutTime: '0.1844'
+  HamamatsuHam_DCAM-SENSOR MODE: AREA
+  HamamatsuHam_DCAM-ScanMode: '1'
+  HamamatsuHam_DCAM-TRIGGER ACTIVE: EDGE
+  HamamatsuHam_DCAM-TRIGGER DELAY: '0.0000'
+  HamamatsuHam_DCAM-TRIGGER GLOBAL EXPOSURE: DELAYED
+  HamamatsuHam_DCAM-TRIGGER SOURCE: INTERNAL
+  HamamatsuHam_DCAM-TRIGGER TIMES: '1'
+  HamamatsuHam_DCAM-TransposeCorrection: '0'
+  HamamatsuHam_DCAM-TransposeMirrorX: '0'
+  HamamatsuHam_DCAM-TransposeMirrorY: '0'
+  HamamatsuHam_DCAM-TransposeXY: '0'
+  HamamatsuHam_DCAM-Trigger: NORMAL
+  HamamatsuHam_DCAM-TriggerPolarity: NEGATIVE
+  Height: 576
+  ImageNumber: 0
+  IntermediateMagnification-Magnification: 1.0x
+  LightPath-Label: 2-R100
+  LightPath-State: '1'
+  Nosepiece-Label: 4-Apo TIRF 100x Oil
+  Nosepiece-State: '3'
+  PFS-DichroicMirrorInserted: 'Yes'
+  PFS-FocusMaintenance: 'Off'
+  PFS-LEDIntensity: '70'
+  PixelSizeAffine: 0.0;0.0;0.0;0.0;0.0;0.0
+  PixelSizeUm: 0.0
+  PixelType: GRAY16
+  PositionIndex: 0
+  PositionName: Default
+  ROI: 288-288-576-576
+  ReceivedTime: 2021-12-21 13:54:47.021 +0100
+  ScopeDataKeys:
+  - IntermediateMagnification-Magnification
+  - HamamatsuHam_DCAM-OUTPUT TRIGGER PERIOD[2]
+  - HamamatsuHam_DCAM-OUTPUT TRIGGER PERIOD[1]
+  - HamamatsuHam_DCAM-CameraID
+  - LightPath-Label
+  - Nosepiece-Label
+  - HamamatsuHam_DCAM-OUTPUT TRIGGER PERIOD[0]
+  - HamamatsuHam_DCAM-TransposeMirrorX
+  - HamamatsuHam_DCAM-ScanMode
+  - HamamatsuHam_DCAM-ReadoutTime
+  - HamamatsuHam_DCAM-MASTER PULSE BURST TIMES
+  - HamamatsuHam_DCAM-TransposeMirrorY
+  - HamamatsuHam_DCAM-EXPOSURE FULL RANGE
+  - Core-ImageProcessor
+  - HamamatsuHam_DCAM-TRIGGER SOURCE
+  - HamamatsuHam_DCAM-OUTPUT TRIGGER SOURCE[2]
+  - HamamatsuHam_DCAM-MASTER PULSE TRIGGER SOURCE
+  - Core-SLM
+  - HamamatsuHam_DCAM-TriggerPolarity
+  - HamamatsuHam_DCAM-MASTER PULSE MODE
+  - HamamatsuHam_DCAM-DEFECT CORRECT MODE
+  - HamamatsuHam_DCAM-OUTPUT TRIGGER SOURCE[1]
+  - HamamatsuHam_DCAM-SENSOR MODE
+  - HamamatsuHam_DCAM-Camera Bus
+  - HamamatsuHam_DCAM-Bits per Channel
+  - HamamatsuHam_DCAM-MASTER PULSE INTERVAL
+  - HamamatsuHam_DCAM-OUTPUT TRIGGER DELAY[2]
+  - HamamatsuHam_DCAM-OUTPUT TRIGGER SOURCE[0]
+  - PFS-DichroicMirrorInserted
+  - HamamatsuHam_DCAM-OUTPUT TRIGGER DELAY[1]
+  - HamamatsuHam_DCAM-Exposure
+  - HamamatsuHam_DCAM-OUTPUT TRIGGER DELAY[0]
+  - Core-Focus
+  - Core-ChannelGroup
+  - PFS-FocusMaintenance
+  - HamamatsuHam_DCAM-INTERNAL LINE SPEED UNITS
+  - FilterTurret1-State
+  - HamamatsuHam_DCAM-Name
+  - HamamatsuHam_DCAM-OUTPUT TRIGGER KIND[2]
+  - HamamatsuHam_DCAM-OUTPUT TRIGGER DELAY UNITS
+  - HamamatsuHam_DCAM-OUTPUT TRIGGER KIND[1]
+  - Core-XYStage
+  - HamamatsuHam_DCAM-OUTPUT TRIGGER KIND[0]
+  - HamamatsuHam_DCAM-INTERNAL LINE INTERVAL
+  - Core-AutoShutter
+  - HamamatsuHam_DCAM-TRIGGER ACTIVE
+  - HamamatsuHam_DCAM-OUTPUT TRIGGER PRE HSYNC COUNT
+  - FilterTurret1-Label
+  - Turret1Shutter-State
+  - HamamatsuHam_DCAM-CONVERSION FACTOR COEFF
+  - HamamatsuHam_DCAM-OUTPUT TRIGGER POLARITY[2]
+  - HamamatsuHam_DCAM-CameraName
+  - HamamatsuHam_DCAM-OUTPUT TRIGGER POLARITY[1]
+  - HamamatsuHam_DCAM-CCDTemperature
+  - Core-Camera
+  - HamamatsuHam_DCAM-OUTPUT TRIGGER POLARITY[0]
+  - HamamatsuHam_DCAM-EXPOSURE TIME UNITS
+  - HamamatsuHam_DCAM-READOUT DIRECTION
+  - HamamatsuHam_DCAM-TransposeCorrection
+  - HamamatsuHam_DCAM-OUTPUT TRIGGER PERIOD UNITS
+  - HamamatsuHam_DCAM-Trigger
+  - PFS-LEDIntensity
+  - DiaLamp-State
+  - HamamatsuHam_DCAM-TransposeXY
+  - HamamatsuHam_DCAM-Binning
+  - HamamatsuHam_DCAM-TRIGGER DELAY
+  - Core-TimeoutMs
+  - HamamatsuHam_DCAM-TRIGGER GLOBAL EXPOSURE
+  - DiaLamp-Intensity
+  - HamamatsuHam_DCAM-Description
+  - HamamatsuHam_DCAM-MINIMUM ACQUISITION TIMEOUT
+  - Core-AutoFocus
+  - HamamatsuHam_DCAM-CONVERSION FACTOR OFFSET
+  - HamamatsuHam_DCAM-TRIGGER TIMES
+  - HamamatsuHam_DCAM-INTERNAL LINE SPEED
+  - Core-Galvo
+  - HamamatsuHam_DCAM-PixelType
+  - Core-Initialize
+  - HamamatsuHam_DCAM-INTERNAL LINE INTERVAL UNITS
+  - HamamatsuHam_DCAM-HOT PIXEL CORRECT LEVEL
+  - LightPath-State
+  - HamamatsuHam_DCAM-Camera Version
+  - Nosepiece-State
+  - Core-Shutter
+  Slice: 0
+  SliceIndex: 0
+  Turret1Shutter-State: '0'
+  UUID: d0cdbc2a-de30-4798-9573-bc7319d1d00d
+  UserData: null
+  Width: 576
+Width: 576
+---
+Box Size: 7
+Generated by: Picasso Localize
+Min. Net Gradient: 20000
+Pixelsize: 130
+ROI: null
+---
+Generated by: Picasso Render
+Last driftfile: W:/users/steen/z.microscopy_raw/02_Project_RESI/211121_RESI_newVoyager_FusionBT_R1R3_nodel/R1_5pr_700pM_R4_700pM_52mW_pcapcdtx_1/R1_5pr_700pM_R4_700pM_52mW_pcapcdtx_1_MMStack_Default.ome_locs_211221_152422_drift.txt
+---
+Generated by: Picasso Filter
+bg: null
+ellipticity: null
+frame: null
+lpx: null
+lpy: null
+net_gradient: null
+photons: null
+sx:
+- 0.7055488308939055
+- 1.260341828587122
+sy:
+- 0.7028322962195734
+- 1.2623993223300511
+x: null
+y: null
+---
+Generated by: 'Picasso Render : Pick'
+Pick Diameter: 1.5
+Pick Shape: Circle

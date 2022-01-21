@@ -9,6 +9,7 @@ Created on Wed Dec  8 11:47:08 2021
 import numpy as np
 import pandas as pd
 import h5py
+import os
 
 
 def angle(p1x, p1y, p2x, p2y):
@@ -69,19 +70,14 @@ def picasso_hdf5(df, hdf5_fname, hdf5_oldname, path):
     df_picasso = df.reindex(columns=labels, fill_value=1)
     locs = df_picasso.to_records(index = False)
 
-
-    """
-    Saving data
-    """
+    # Saving data
     
     hf = h5py.File(path + hdf5_fname, 'w')
     hf.create_dataset('locs', data=locs)
     hf.close()
 
-    ''' 
-    YAML Saver
-    '''
-    
+    # YAML saver
+
     yaml_oldname = path + hdf5_oldname.replace('.hdf5', '.yaml')
     yaml_newname = path + hdf5_fname.replace('.hdf5', '.yaml')
     
@@ -107,29 +103,30 @@ def get_resi_locs(files, K):
     output: 
         
         data: a data frame with the localizations with one extra property, 
-              the 'subgroup'
+              the 'subset'
         resi_locs: a data frame with the resi localizations obtained by 
-                   averaging in the subgroups
+                   averaging in the subsets
     """
     
     data = {}
-    ngroups = {}
+    nclusters = {}
     resi_locs = {}
     
     for i, file in enumerate(files):
-        data[str(i)] = pd.read_hdf(file, key='locs') # read every channel (file)
+        data[str(i)] = pd.read_hdf(file, key='locs') # read each channel (file)
+        data[str(i)].rename(columns={'group': 'cluster_id'}, inplace=True)
         
     for key in data.keys():
         
-        ngroups[key] = data[key]['group'].max()+1 # TO DO: 0-index the groups so they're easier to iterate 
+        nclusters[key] = data[key]['cluster_id'].max()+1 # TODO: 0-index the clusters so they're easier to iterate 
         
-        # initalize a list with the subgroup property
-        subgrouplist = ['empty']*data[key].shape[0]
-        data[key]['subgroup'] = subgrouplist
+        # initalize a list with the 'subset' property
+        subsetslist = [-1]*data[key].shape[0] # -1 is the label for localizations not assigned to any subset
+        data[key]['subset'] = subsetslist
 
-        for i in range(1, ngroups[key]): 
+        for i in range(1, nclusters[key]): # TODO: check 0-index vs 1-index in clusters
             
-            cluster = data[key].loc[data[key]['group'] == i] # get the table of cluster i   
+            cluster = data[key].loc[data[key]['cluster_id'] == i] # get the table of cluster i   
             indexes = cluster.index # get the (general) indexes of the localizations in this cluster
             nlocs = cluster.shape[0] # get the number of localizations in cluster i
             nsubsets = int(nlocs/K) # get number of subsets, given K
@@ -139,9 +136,71 @@ def get_resi_locs(files, K):
                 # random choice of size K
                 subsets_id = np.random.choice(indexes, size=K, replace=False) 
                 indexes = [i for i in indexes if i not in subsets_id] # remove already chosen indexes
-                data[key].loc[subsets_id, 'subgroup'] = j # assign a subgroup label   
+                data[key].loc[subsets_id, 'subset'] = j # assign a subset label   
                 
-        grouped_locs = data[key].groupby(['group', 'subgroup']) # group localizations by group-subgroup
-        resi_locs[key] = grouped_locs.mean() # calculate mean by group-subgroup and obtain resi data
+        grouped_locs = data[key].groupby(['cluster_id', 'subset']) # group localizations by cluster_id and subset
+                                                                
+        resi_locs[key] = grouped_locs.mean().reset_index() # calculate mean by cluster_id and subset and obtain resi data
     
     return resi_locs, data
+
+
+def simulate_data(fname, sites, locs_per_site, σ_dnapaint, plot=False):
+    
+    """
+    input:
+            sites: array with the coordinates of the docking sites (in nm)
+            locs_per_site: number of localizations per site
+            σ_dnapaint: DNA-PAINT precision in nm
+    
+    output: 
+            it writes a file with the simulated data
+
+    """
+    
+    cov = [[σ_dnapaint**2, 0], [0, σ_dnapaint**2]] # create covariance matrix
+    locs = locs_per_site # number of localizations per docking site
+    
+    # generate simulated origami data
+    
+    data = np.zeros((sites.shape[0], locs, 2))
+    xlist = []
+    ylist = []
+    clusterlist = []
+    
+    for i, site in enumerate(sites):
+    
+        data[i, :, :] = np.random.multivariate_normal(site, cov, locs) 
+        
+        xlist += list(data[i, :, 0])
+        ylist += list(data[i, :, 1])
+        clusterlist += list(np.array((np.ones(data.shape[1])*i + 1), 
+                                     dtype=int))
+    
+    d = {'x': xlist, 'y': ylist, 'cluster_id': clusterlist}
+    df = pd.DataFrame(d)
+    df.to_hdf(fname, key='locs', mode='w')
+    
+    if plot: # plot whole origami (histogram)
+    
+        import matplotlib.pyplot as plt
+    
+        fig1, ax1 = plt.subplots()
+        ax1.set_xlabel('x (nm)')
+        ax1.set_xlim([-50, 50])
+        ax1.set_ylim([-50, 50])
+        ax1.set_ylabel('y (nm)')
+        
+        bins = np.arange(-50, 50, 0.2)
+        hist, xbins, ybins = np.histogram2d(data[:, :, 0].flatten(), 
+                                            data[:, :, 1].flatten(), 
+                                            bins=bins)
+        extent = [-50, 50, -50, 50]
+        
+        ax1.imshow(hist.T, interpolation='none', origin='lower', 
+                   cmap='hot', 
+                   extent=extent)
+        ax1.set_aspect('equal')
+    
+        
+    return "Simulated data successfully generated"

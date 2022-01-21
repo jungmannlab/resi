@@ -8,20 +8,21 @@ import pandas as pd
 
 import tools
 
-
 '''Please copy and paste the path to the folder containing the data that should be analyzed.'''
+
 path = r"W:\users\reinhardt\z.software\Git\RESI\RESI\test_files\main_eucl_transf_Clustering"
 
-
-name_parts = ["R1_apicked", "ori", "resi", "info"]
-not_name_parts = ["merge"] 
-filename_merge = "R1_apicked_ori-all_aligned_resi_4_50_info_merge.hdf5"
-
+name_parts = ["resi_merged", "ori", "K"] # strings contained in the names of the files to be merged
+not_name_parts = ["full"] # strings not contained in the names of the files to be merged
+filename_merge = "full_resi_data.hdf5" # desired name for the merged file
 
 dataframe_all = pd.DataFrame()
 
 counter = 0
 for file in glob.glob(os.path.join(path, "*.hdf5")): # searches all hdf5 files
+
+    print('loop started')
+    
     filename = os.path.split(file)[1]
     #print([name_part in filename for name_part in name_parts],[not_name_part not in filename for not_name_part in not_name_parts])
     if all(name_part in filename for name_part in name_parts) and all(not_name_part not in filename for not_name_part in not_name_parts):
@@ -46,9 +47,8 @@ for file in glob.glob(os.path.join(path, "*.hdf5")): # searches all hdf5 files
             dataframe_add = pd.DataFrame(data)
             dataframe_all = dataframe_all.append(dataframe_add, ignore_index = True)
 
+# dataframe_all = dataframe_all.sort_values(by=["group","frame"])
 
-        
-dataframe_all = dataframe_all.sort_values(by=["group","frame"])
 
 filename_old = os.path.split(filename_example)[1]
 filename_new = filename_merge
