@@ -204,3 +204,5 @@ def simulate_data(fname, sites, locs_per_site, σ_dnapaint, plot=False):
     
         
     return "Simulated data successfully generated"
+    
+    
