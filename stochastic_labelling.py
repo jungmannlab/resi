@@ -20,11 +20,14 @@ plt.close('all')
 # independent parameters
 
 d = 2 # dimension of the simulation, d = 2 for 2D case, d = 3 for 3D
-density = 100e-6 # molecules per nm^2
+density = 1000e-6 # molecules per nm^2 (or nm^3)
 σ_dnapaint = 5 # nm
-labelling_rounds = 4
-width = 20e3 # width of the simulated area in nm
-height = 20e3 # height of the simulated area in nm
+width = 0.5e3 # width of the simulated area in nm
+height = 0.5e3 # height of the simulated area in nm
+depth = 0.5e3 # depth of the simulated area in nm
+
+# distribution = 'evenly spaced'
+distribution = 'uniform'
 
 # dependent parameters
 
@@ -36,12 +39,36 @@ N = int(density * width * height)
 # =============================================================================
 
 pos = np.zeros((N, d)) # initialize array of localizations
-pos[:, 0], pos[:, 1] = [np.random.uniform(0, width, N), 
-                         np.random.uniform(0, height, N)]
 
-fig0, ax0 = plt.subplots()
+if d == 2:
+    
+    fig0, ax0 = plt.subplots()
+    
+    if distribution == 'uniform':
+        pos[:, 0], pos[:, 1] = [np.random.uniform(0, width, N), 
+                                np.random.uniform(0, height, N)]
+        
+    elif distribution == 'evenly spaced':
+        pos = np.mgrid[0:width:width/np.sqrt(N), 
+                       0:height:height/np.sqrt(N)].reshape(2,-1).T
+    
+    ax0.scatter(pos[:, 0], pos[:, 1], alpha = 0.5)
+    ax0.set_xlabel('x (nm)')
+    ax0.set_ylabel('y (nm)')
 
-ax0.scatter(pos[:, 0], pos[:, 1], alpha = 0.5)
+elif d == 3:
+    
+    fig0 = plt.figure()
+    ax0 = fig0.add_subplot(projection='3d')
+
+    pos[:, 0], pos[:, 1], pos[:, 2] = [np.random.uniform(0, width, N), 
+                                       np.random.uniform(0, height, N),
+                                       np.random.uniform(0, depth, N)]
+    
+    ax0.scatter3D(pos[:, 0], pos[:, 1], pos[:, 2])
+    ax0.set_xlabel('x (nm)')
+    ax0.set_ylabel('y (nm)')
+    ax0.set_zlabel('z (nm)')
 
 nbrs = NearestNeighbors(n_neighbors=2).fit(pos) # find nearest neighbours
 _distances, _indices = nbrs.kneighbors(pos) # get distances and indices
