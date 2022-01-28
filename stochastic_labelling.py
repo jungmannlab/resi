@@ -20,11 +20,11 @@ plt.close('all')
 # independent parameters
 
 d = 2 # dimension of the simulation, d = 2 for 2D case, d = 3 for 3D
-density = 1000e-6 # molecules per nm^2 (or nm^3)
+density = 100e-6 # molecules per nm^2 (or nm^3)
 σ_dnapaint = 5 # nm
-width = 0.5e3 # width of the simulated area in nm
-height = 0.5e3 # height of the simulated area in nm
-depth = 0.5e3 # depth of the simulated area in nm
+width = 40e3 # width of the simulated area in nm
+height = 40e3 # height of the simulated area in nm
+depth = 5e3 # depth of the simulated area in nm
 
 # distribution = 'evenly spaced'
 distribution = 'uniform'
@@ -55,6 +55,7 @@ if d == 2:
     ax0.scatter(pos[:, 0], pos[:, 1], alpha = 0.5)
     ax0.set_xlabel('x (nm)')
     ax0.set_ylabel('y (nm)')
+    ax0.set_title('Density = '+str(int(density*1e6))+'/$μm^2$')
 
 elif d == 3:
     

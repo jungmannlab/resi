@@ -22,9 +22,9 @@ plt.close('all')
 d = 2 # dimension of the simulation, d = 2 for 2D case, d = 3 for 3D
 density_arr = np.linspace(1, 1000, 300) * 10**-6 # molecules per nm^2
 σ_dnapaint_arr = np.linspace(1, 20, 100) # nm
-labelling_rounds = np.arange(1, 10)
-width = 20e3 # width of the simulated area in nm
-height = 20e3 # height of the simulated area in nm
+# labelling_rounds = np.arange(1, 10)
+width = 80e3 # width of the simulated area in nm
+height = 80e3 # height of the simulated area in nm
 distribution = 'uniform'
 
 err_val = 0.05 # admitted frac of molecules closer than the resolution limit
@@ -110,13 +110,20 @@ ax0.set_ylabel('Density ($μm^{-2}$)')
 
 fig2, ax2 = plt.subplots()
 
-res_id = int(0.2 * len(resolution_arr)) # will give roughly 20 nm res
-ax2.plot(density_arr * 10**6, n_subres_frac_arr[:, res_id])
+res_id = np.array(np.array([0.1, 0.2, 0.3, 0.4, 0.5]) * len(resolution_arr), dtype=int)
+ax2.plot(density_arr * 10**6, n_subres_frac_arr[:, res_id[3]])
 # title = 'Resolution = ' + str(np.around(resolution_arr[res_id], 1)) + ' nm'
 # ax2.set_title(title)
 ax2.set_xlabel('Density ($μm^{-2}$)')
 ax2.set_ylabel('Fraction of subres molecules')
-ax2.plot(density_arr * 10**6, np.ones(len(density_arr)) * err_val)
+ax2.plot(density_arr * 10**6, np.ones(len(density_arr)) * err_val, 'k--')
 
-res_id = int(0.1 * len(resolution_arr)) # will give roughly 20 nm res
-ax2.plot(density_arr * 10**6, n_subres_frac_arr[:, res_id])
+# res_id = int(0.1 * len(resolution_arr)) # will give roughly 20 nm res
+ax2.plot(density_arr * 10**6, n_subres_frac_arr[:, res_id[3]])
+
+for index in res_id:
+    
+    ax2.plot(density_arr * 10**6, n_subres_frac_arr[:, index], 
+             label=str(np.around(resolution_arr[index], 0))+' nm')
+    
+ax2.legend()
