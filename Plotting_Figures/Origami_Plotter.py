@@ -336,12 +336,12 @@ class Origami():
 #Cycle through all files of interest
 
 def Cycler(parent_folder, R1_clusters, R3_clusters, R1_all, R3_all, number):
-    """
-    Generates the filenames necessary to import the data.
+	"""
+	Generates the filenames necessary to import the data.
 
-    Parameters
-    ----------
-    parent_folder : String (path)
+	Parameters
+	----------
+	parent_folder : String (path)
 		Path to the folder containing all data
 	R1_clusters : String
 		Filename-components of the clustered R1 localizations
@@ -353,7 +353,7 @@ def Cycler(parent_folder, R1_clusters, R3_clusters, R1_all, R3_all, number):
 		Filename-components of all R3 localizations
 	number: String
 		The numbers of the origami (0 to ...) to complete the filenames
-        """
+	"""
 	R1_c_file = R1_clusters[0]+number+R1_clusters[1]
 	R3_c_file = R3_clusters[0]+number+R3_clusters[1]
 	R1_a_file = R1_all[0]+number+R1_all[1]
@@ -380,9 +380,13 @@ R3_all = ["R3_picked_ori", "_aligned.hdf5"]
 
 numbers = ["2", "3"]
 
+#out_path = "./outputs/"
+
+out_path = "/Users/steen/Projects/RESI/figures_out/"
+
 for index, value in enumerate(numbers):
 	R1_c, R3_c, R1_a, R3_a = Cycler(parent_folder, R1_clusters, R3_clusters, R1_all, R3_all, value)
-	f = Origami(value, 2.5, R1_c, R3_c, R1_a, R3_a, 5, "./outputs/")
+	f = Origami(value, 2.5, R1_c, R3_c, R1_a, R3_a, 5, out_path)
 	f.CalcRESI()
 	f.AutoPlotter("black", show = False, save = True)
 
