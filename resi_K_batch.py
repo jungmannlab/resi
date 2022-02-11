@@ -14,16 +14,18 @@ import os
 
 plt.close('all')
 
-path = r'/Volumes/pool-miblab4/users/masullo/z.microscopy_processed/resi origami - K analysis/test_data_2'
+path = r'/Volumes/pool-miblab4/users/masullo/z.microscopy_processed/resi origami - K analysis/analysis'
 
 pxsize = 130 # nm
 K_array = np.array([1, 5, 10, 20, 30, 40]) # number of localizations per subset
-noris = 92
+noris = 89
 
 for i in range(noris):
     
-    files = [path + '/R1_picked_ori' + str(i) + '_ClusterD4_50.hdf5', 
-             path + '/R3_picked_ori' + str(i) + '_aligned_ClusterD4_50.hdf5']
+    print(i)
+    
+    files = [path + '/R1_R4_ori' + str(i) + '_ClusterD4_50.hdf5', 
+             path + '/R3_R4_ori' + str(i) + '_aligned_ClusterD4_50.hdf5']
 
     for k, K in enumerate(K_array):
         
@@ -33,6 +35,6 @@ for i in range(noris):
         merged_resi = pd.concat(dataframes)
         
         tools.picasso_hdf5(merged_resi, '/resi_results/resi_ori' + str(i) + '_K' + str(K) + '_.hdf5', 
-                           '/R1_picked_ori' + str(i) + '_ClusterD4_50.hdf5', path)
+                           '/R1_R4_ori' + str(i) + '_ClusterD4_50.hdf5', path)
         
         # loop over the whole folder and create files
