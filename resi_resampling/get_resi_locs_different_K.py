@@ -10,6 +10,12 @@ import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
 import os
+
+from os.path import dirname as up
+cwd = os.getcwd()
+wdir = up(cwd)
+os.chdir(wdir)
+
 import tools
 
 plt.close('all')
