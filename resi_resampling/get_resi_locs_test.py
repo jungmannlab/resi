@@ -6,10 +6,16 @@ Created on Fri Jan 14 19:21:19 2022
 @author: masullo
 """
 
+import os
+from os.path import dirname as up
+
+cwd = os.getcwd()
+wdir = up(cwd)
+os.chdir(wdir)
+
 import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
-import os
 import tools
 
 plt.close('all')
