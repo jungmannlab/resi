@@ -109,7 +109,6 @@ def get_resi_locs(files, K):
     """
     
     data = {}
-    nclusters = {}
     resi_locs = {}
     
     for i, file in enumerate(files):
@@ -117,16 +116,16 @@ def get_resi_locs(files, K):
         data[str(i)].rename(columns={'group': 'cluster_id'}, inplace=True)
         
     for key in data.keys():
-        
-        nclusters[key] = data[key]['cluster_id'].max()+1 # TODO: 0-index the clusters so they're easier to iterate 
-        
+                
         # initalize a list with the 'subset' property
         subsetslist = [-1]*data[key].shape[0] # -1 is the label for localizations not assigned to any subset
         data[key]['subset'] = subsetslist
+        
+        cluster_id_set = list(set(list(data[key]['cluster_id'])))
 
-        for i in range(1, nclusters[key]): # TODO: check 0-index vs 1-index in clusters
+        for _ , cluster_id in enumerate(cluster_id_set):
             
-            cluster = data[key].loc[data[key]['cluster_id'] == i] # get the table of cluster i   
+            cluster = data[key].loc[data[key]['cluster_id'] == cluster_id] # get the table of cluster i   
             indexes = cluster.index # get the (general) indexes of the localizations in this cluster
             nlocs = cluster.shape[0] # get the number of localizations in cluster i
             nsubsets = int(nlocs/K) # get number of subsets, given K
