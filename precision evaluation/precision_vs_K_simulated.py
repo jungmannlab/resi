@@ -21,7 +21,6 @@ import tools
 plt.close('all')
 
 pxsize = 130 # nm
-
 simulate = False
 
 if simulate:

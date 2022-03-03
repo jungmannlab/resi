@@ -26,12 +26,19 @@ pxsize = 130 # nm
 # real data
 # =============================================================================
 
-ori = 42
+path = r'/Volumes/pool-miblab4/users/masullo/z.microscopy_processed/resi origami - K analysis/20 nm origami'
 
-files = ['test_files/5nm/R1_R4_ori'+str(ori)+'_ClusterD4_50.hdf5', 
-         'test_files/5nm/R3_R4_ori'+str(ori)+'_aligned_ClusterD4_50.hdf5']
+i = 17
 
-K_array = np.array([1, 30]) # number of localizations per subset
+files = [path + '/R1_R4_apicked_ori' + str(i) + '_ClusterD5_40.hdf5', 
+          path + '/R3_R4_apicked_ori' + str(i) + '_aligned_ClusterD5_40.hdf5']
+
+# ori = 42
+
+# files = ['test_files/5nm/R1_R4_ori'+str(ori)+'_ClusterD4_50.hdf5', 
+#           'test_files/5nm/R3_R4_ori'+str(ori)+'_aligned_ClusterD4_50.hdf5']
+
+K_array = np.array([1, 40]) # number of localizations per subset
 fig0, ax0 = plt.subplots(1, 2, figsize=(10, 8)) # size must match
 
 for k, (ax, K) in enumerate(zip(ax0.reshape(-1), K_array)):
