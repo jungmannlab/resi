@@ -24,7 +24,7 @@ from MainFunctions.apply_eucl_transf_f import apply_eucl_transf_f
 
 
 '''Please copy and paste the path to the folder containing the data that should be analyzed.'''
-path = r"W:\users\reinhardt\z.software\Git\RESI\RESI\test_files\main_eucl_transf_Clustering"
+path = r"W:\users\reinhardt\z.software\Git\RESI\RESI\test_files\main_eucl_transf_Clustering_3d"
 # for testfiles: path = r"W:\users\reinhardt\z.software\Git\RESI\RESI\test_files\main_eucl_transf_Clustering"
 
 '''Please choose a value for the following two parameters.'''
@@ -37,6 +37,9 @@ colocalization_radius = 25  # (in nm) This is the distance necessary for the Pos
 
 data = [["R1", "R1_apicked", 4, 50],
         ["R3", "R3_apicked", 4, 50]]
+
+
+radius_z = 22 # set to 0 for 2d data
 
 
 '''
@@ -83,7 +86,8 @@ if os.path.isfile(eucl_transf_data) != True:
 
     ch13_files = glob.glob(os.path.join(path_alignment_picks, "*.hdf5"))
     ch1_files = sorted(file for file in ch13_files if data[0][1] in file)
-    #print(ch1_files)
+    print('ch13_files', ch13_files)
+    print('ch1_files', ch1_files)
     # get the respective list for the ch3 files. 
     # Instead of extracting it in the same way from the ch13_files list
     # it will be created from the ch1_files list. If it would be extracted
@@ -126,7 +130,7 @@ if os.path.isfile(eucl_transf_data) == True:
 else:
     raise Exception("Euclidian transformation for channel alignment has not yet been determined.")
 
-
+"""
 
 '''Perform Clustering'''
 '''============================================================================'''
@@ -216,3 +220,4 @@ if len(data) > 1:
                     
     
 print("postprocessing finished")
+"""
