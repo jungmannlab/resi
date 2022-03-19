@@ -35,8 +35,8 @@ colocalization_radius = 25  # (in nm) This is the distance necessary for the Pos
 
 '''Please specify which hdf5 files you want to analyze as well as the respective parameters. Please follow the following pattern'''
 
-data = [["R1", "R1_apicked", 4, 50],
-        ["R3", "R3_apicked", 4, 50]]
+data = [["R1", "R1_apicked", 11, 50],
+        ["R3", "R3_apicked", 11, 50]]
 
 
 radius_z = 22 # set to 0 for 2d data
@@ -130,7 +130,7 @@ if os.path.isfile(eucl_transf_data) == True:
 else:
     raise Exception("Euclidian transformation for channel alignment has not yet been determined.")
 
-"""
+
 
 '''Perform Clustering'''
 '''============================================================================'''
@@ -149,7 +149,7 @@ def Clusterer_check(path, radius, min_cluster_size, filename_base, i):
                 if os.path.isfile(npz_file) != True: 
                     # check that the file has not been clustered already
                     #print("clusterer starts the file", file)
-                    clusterer_resi(file, radius, min_cluster_size)
+                    clusterer_resi(file, radius, min_cluster_size, radius_z)
                     #print("clusterer has finished the file", file)
                     #print() 
                 
@@ -220,4 +220,3 @@ if len(data) > 1:
                     
     
 print("postprocessing finished")
-"""

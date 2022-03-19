@@ -72,6 +72,8 @@ import sys
 import math
 from numba import cuda
 import os
+import h5py
+import pandas as pd
 
 import tools
     
@@ -79,9 +81,9 @@ import tools
 '''
     
     
-    
+#detects 1st, 2nd... 10th nearest neighbors 
 @cuda.jit
-def NNDs_kernel(x_com, y_com, higher_neighbors_data):
+def NNDs_kernel(x_com, y_com, higher_neighbors_data, z_com=np.zeros(1)):
 
     i = cuda.grid(1)
     
@@ -91,8 +93,14 @@ def NNDs_kernel(x_com, y_com, higher_neighbors_data):
     current_distance = 10000
 
     for j in range(0, len(x_com)):
-        current_distance = math.sqrt((x_com[i]-x_com[j])**2+(y_com[i]-y_com[j])**2)*130
-        
+        if z_com.size == 1:
+            current_distance = math.sqrt((x_com[i]-x_com[j])**2+
+                                         (y_com[i]-y_com[j])**2)*130
+        else:
+            current_distance = math.sqrt((x_com[i]-x_com[j])**2+
+                                         (y_com[i]-y_com[j])**2+
+                                         (z_com[i]-z_com[j])**2)*130
+
         if j!= i:
             for z in range(0,len(higher_neighbors_data[1])):
                 
@@ -110,9 +118,11 @@ def NNDs_kernel(x_com, y_com, higher_neighbors_data):
                     if current_distance < higher_neighbors_data[i][z] and current_distance > higher_neighbors_data[i][z-1]:
                         higher_neighbors_data[i][z] = current_distance
   
-  
+#detects 1st, 2nd... 10th nearest neighbors between two species
 @cuda.jit
-def NNDs_ex_kernel(x_com1, y_com1, x_com2, y_com2, higher_neighbors_data, crossNND_partner_ID, crossNND_partner_x, crossNND_partner_y):
+def NNDs_ex_kernel(x_com1, y_com1, x_com2, y_com2, higher_neighbors_data, 
+                   crossNND_partner_ID, crossNND_partner_x, crossNND_partner_y,
+                   z_com1=np.zeros(1), z_com2=np.zeros(1), crossNND_partner_z=np.zeros(1)):
 
     i = cuda.grid(1)
     
@@ -122,8 +132,14 @@ def NNDs_ex_kernel(x_com1, y_com1, x_com2, y_com2, higher_neighbors_data, crossN
     current_distance = 10000
 
     for j in range(0, len(x_com2)):
-        current_distance = math.sqrt((x_com1[i]-x_com2[j])**2+(y_com1[i]-y_com2[j])**2)*130
-        
+        if z_com1.size == 1:
+            current_distance = math.sqrt((x_com1[i]-x_com2[j])**2+
+                                         (y_com1[i]-y_com2[j])**2)*130
+        else:
+            current_distance = math.sqrt((x_com1[i]-x_com2[j])**2+
+                                         (y_com1[i]-y_com2[j])**2+
+                                         (z_com1[i]-z_com2[j])**2)*130
+
         for z in range(0,len(higher_neighbors_data[1])):
             
             if z == 0:
@@ -132,6 +148,7 @@ def NNDs_ex_kernel(x_com1, y_com1, x_com2, y_com2, higher_neighbors_data, crossN
                     crossNND_partner_ID[i] = j
                     crossNND_partner_x[i] = x_com2[j]
                     crossNND_partner_y[i] = y_com2[j]
+                    crossNND_partner_z[i] = z_com2[j]
 
         
                 if current_distance < higher_neighbors_data[i][z]:
@@ -139,6 +156,7 @@ def NNDs_ex_kernel(x_com1, y_com1, x_com2, y_com2, higher_neighbors_data, crossN
                     crossNND_partner_ID[i] = j
                     crossNND_partner_x[i] = x_com2[j]
                     crossNND_partner_y[i] = y_com2[j]
+                    crossNND_partner_z[i] = z_com2[j]
                     
             if z!= 0:
                 if higher_neighbors_data[i][z] == 0:
@@ -149,8 +167,9 @@ def NNDs_ex_kernel(x_com1, y_com1, x_com2, y_com2, higher_neighbors_data, crossN
   
 
     
+#calculate amount of neighbors within a range of radii  
 @cuda.jit
-def amountofNeighbors_kernel(x_com, y_com, amountOfNeighbors_data, threshold_radius):
+def amountofNeighbors_kernel(x_com, y_com, amountOfNeighbors_data, threshold_radius, z_com=np.zeros(1)):
     i = cuda.grid(1)
     
     if (i >= len(amountOfNeighbors_data)):
@@ -158,22 +177,39 @@ def amountofNeighbors_kernel(x_com, y_com, amountOfNeighbors_data, threshold_rad
 
     for j in range(0, len(x_com)):
         if i!=j:
-            current_distance = math.sqrt((x_com[i]-x_com[j])**2+(y_com[i]- y_com[j])**2)*130
+            if z_com.size == 1:
+                current_distance = math.sqrt((x_com[i]-x_com[j])**2+
+                                             (y_com[i]-y_com[j])**2)*130
+            else:
+                current_distance = math.sqrt((x_com[i]-x_com[j])**2+
+                                             (y_com[i]-y_com[j])**2+
+                                             (z_com[i]-z_com[j])**2)*130
+            
             if current_distance <= threshold_radius[len(threshold_radius)-1]:
                 for k in range(0,len(threshold_radius)):
                     if current_distance <= threshold_radius[k]:
                         amountOfNeighbors_data[i][k] += 1
 
+
+# the same across to species: how many species B neighbors does have the centered species A protein within various radii
 @cuda.jit
-def amountofNeighbors_ex_kernel(x_com1, y_com1, x_com2, y_com2, amountOfNeighbors_data, threshold_radius):
+def amountofNeighbors_ex_kernel(x_com1, y_com1, x_com2, y_com2, amountOfNeighbors_data, 
+                                threshold_radius, z_com1=np.zeros(1), z_com2=np.zeros(1)):
     i = cuda.grid(1)
     
     if (i >= len(amountOfNeighbors_data)):
         return    
 
-    for j in range(0, len(x_com1)):
+    for j in range(0, len(x_com2)):
 
-        current_distance = math.sqrt((x_com1[i]-x_com2[j])**2+(y_com1[i]-y_com2[j])**2)*130
+        if z_com1.size == 1:
+            current_distance = math.sqrt((x_com1[i]-x_com2[j])**2+
+                                         (y_com1[i]-y_com2[j])**2)*130
+        else:
+            current_distance = math.sqrt((x_com1[i]-x_com2[j])**2+
+                                         (y_com1[i]-y_com2[j])**2+
+                                         (z_com1[i]-z_com2[j])**2)*130
+
         if current_distance <= threshold_radius[len(threshold_radius)-1]:
             for k in range(0,len(threshold_radius)):
                 if current_distance <= threshold_radius[k]:
@@ -184,11 +220,10 @@ def amountofNeighbors_ex_kernel(x_com1, y_com1, x_com2, y_com2, amountOfNeighbor
 
 
 
-import h5py
 
 def postprocessing_cross(protein1, protein2, npz_file1, npz_file2, resi_file1, resi_file2, colocalization_radius):
 
-    import pandas as pd
+    
 
     """load Resi files"""
     f1 = h5py.File(resi_file1, 'r')
@@ -203,62 +238,46 @@ def postprocessing_cross(protein1, protein2, npz_file1, npz_file2, resi_file1, r
     df_resi2 = pd.DataFrame(resi2)
     
     
-    
-    
-    '''Read in Files'''
-    #File 1 - Talin -> truepos
-    
-    
+    # Load NPZ file 1 "Talin"
     filename = npz_file1
-    
-    
     f1 = np.load(filename)
-    
-    #data = np.zeros((len(f1['new_com_x_cluster']),6))
-    
-    '''
-    s=timer()
-    for i in range(0,len(f1['new_com_x_cluster'])):
-        data[i][4] = f1['new_com_x_cluster'][i]
-        data[i][5] = f1['new_com_y_cluster'][i]
-    e = timer()
-    print("old import:", e-s) 
-    '''
-    
-    
-    #data_t = np.zeros((len(f1['new_com_x_cluster']),6))
-    s=timer()
     x_com1 = f1['new_com_x_cluster']   
     y_com1 = f1['new_com_y_cluster']
-    e = timer()
-    print("new import:", e-s)
-    #len(x_com1)
-    #len(x_com2)
-    
-    '''
-    for i in range(0,len(f1['new_com_x_cluster'])):
-        if (data[i][4] != x_com[i]):
-            print(i, data[i][4], x_com[i])
-    '''
-    #Get data
-    
-    
+
+    try:
+        z_com1 = f1['new_com_z_cluster']
+        print("3D data detected.")
+        flag_3D_1 = True
+    except:
+        print("2D data detected.")
+        flag_3D_1 = False
+        
     
     NN_Talin_T = np.zeros(len(x_com1))
+
+
     
-    # File 2 - Kindlin
-    
+    # Load NPZ file 1 "Kindlin"
     
     filename2 = npz_file2
-    
-
     f2 = np.load(filename2)
-
-    #data2 = np.zeros((len(f2['new_com_x_cluster']),6))
-
     
     x_com2 = f2['new_com_x_cluster']
     y_com2 = f2['new_com_y_cluster']
+
+    try:
+        z_com2 = f2['new_com_z_cluster']
+        print("Second dataset: 3D data detected.")
+        flag_3D_2 = True
+    except:
+        print("Second dataset: 2D data detected.")
+        flag_3D_2 = False
+    
+    if not flag_3D_1 == flag_3D_2:
+        sys.exit("Both datasets have to be either 2D or 3D.")
+    
+    flag_3D = flag_3D_1
+
     
     NN_Kindlin_K = np.zeros(len(x_com2))
     NN_Talin_Kindlin = np.zeros(len(x_com1))
@@ -268,15 +287,15 @@ def postprocessing_cross(protein1, protein2, npz_file1, npz_file2, resi_file1, r
     
     coloc_def = int(colocalization_radius)
     
-    #if filename2.isnumeric() == True:
-    #    coloc_def = int(sys.argv[2])
-    
-    
     d_x_com1 = cuda.to_device(x_com1)
     d_y_com1 = cuda.to_device(y_com1)
     d_x_com2 = cuda.to_device(x_com2)
     d_y_com2 = cuda.to_device(y_com2)
-        
+    if flag_3D:
+        d_z_com1 = cuda.to_device(z_com1)  
+        d_z_com2 = cuda.to_device(z_com2) 
+    # A dummy variable for numba's 'optional' arguments
+    dum_arr = np.zeros(1)       
     
     '''===============================
     #3 check distance to nearest neighbour in other file and save nearest neighbour distance for Talin to Kindlin
@@ -294,6 +313,8 @@ def postprocessing_cross(protein1, protein2, npz_file1, npz_file2, resi_file1, r
     crossNND_partner_ID_kindlin_to_talin = np.zeros(len(x_com2),dtype=int)
     crossNND_partner_x_kindlin_to_talin = np.zeros(len(x_com2),dtype=float)
     crossNND_partner_y_kindlin_to_talin = np.zeros(len(x_com2),dtype=float)
+    if flag_3D:
+        crossNND_partner_z_kindlin_to_talin = np.zeros(len(x_com2),dtype=float)
 
 
     #d_higher_neighbors_kindlin_to_talin = cuda.to_device(higher_neighbors_kindlin_to_talin)
@@ -302,8 +323,17 @@ def postprocessing_cross(protein1, protein2, npz_file1, npz_file2, resi_file1, r
     blockdim_1d = 32
     griddim_1d = len(x_com2)//blockdim_1d + 1
     
-    NNDs_ex_kernel[griddim_1d, blockdim_1d](d_x_com2, d_y_com2, d_x_com1, d_y_com1, higher_neighbors_kindlin_to_talin, crossNND_partner_ID_kindlin_to_talin, crossNND_partner_x_kindlin_to_talin, crossNND_partner_y_kindlin_to_talin)
+    if not flag_3D:
+        NNDs_ex_kernel[griddim_1d, blockdim_1d](d_x_com2, d_y_com2, d_x_com1, d_y_com1, 
+            higher_neighbors_kindlin_to_talin, crossNND_partner_ID_kindlin_to_talin, 
+            crossNND_partner_x_kindlin_to_talin, crossNND_partner_y_kindlin_to_talin, 
+            dum_arr, dum_arr, dum_arr)
     
+    else:
+        NNDs_ex_kernel[griddim_1d, blockdim_1d](d_x_com2, d_y_com2, d_x_com1, d_y_com1, 
+            higher_neighbors_kindlin_to_talin, crossNND_partner_ID_kindlin_to_talin, 
+            crossNND_partner_x_kindlin_to_talin, crossNND_partner_y_kindlin_to_talin, 
+            d_z_com2, d_z_com1, crossNND_partner_z_kindlin_to_talin)
     
     #higher_neighbors_kindlin_to_talin = d_higher_neighbors_kindlin_to_talin.copy_to_host()
 
@@ -317,36 +347,42 @@ def postprocessing_cross(protein1, protein2, npz_file1, npz_file2, resi_file1, r
         if NN_Kindlin_Talin[i] <= coloc_def:
             coloc_counter = coloc_counter + 1
     
-    Labeling_efficiency2_to_1 = np.zeros(2)
-    Labeling_efficiency2_to_1[0] = coloc_counter/len(NN_Kindlin_Talin)*100
     
+    #Labeling_efficiency2_to_1 = np.zeros(2)
+    #Labeling_efficiency2_to_1[0] = coloc_counter/len(NN_Kindlin_Talin)*100
+    Labeling_efficiency_K2_T1 = coloc_counter/len(NN_Kindlin_Talin)*100
+
     
         
     
     '''Talin to Kindlin calculation'''
     
     #higher_order_nearest_neighbors Talin to Kindlin
-    #if filename2.isnumeric() == False:
-        
+
     higher_neighbors_talin_to_kindlin = np.zeros((len(x_com1),10),dtype=float) 
     crossNND_partner_ID_talin_to_kindlin = np.zeros(len(x_com1),dtype=int)
     crossNND_partner_x_talin_to_kindlin = np.zeros(len(x_com1),dtype=float)
     crossNND_partner_y_talin_to_kindlin = np.zeros(len(x_com1),dtype=float)
+    if flag_3D:
+        crossNND_partner_z_talin_to_kindlin = np.zeros(len(x_com2),dtype=float)
 
-
-
-    #d_higher_neighbors_talin_to_kindlin = cuda.to_device(higher_neighbors_talin_to_kindlin)
-    
     
     blockdim_1d = 32
-    griddim_1d = len(x_com1)//blockdim_1d + 1
+    griddim_1d = len(x_com2)//blockdim_1d + 1
     
-    NNDs_ex_kernel[griddim_1d, blockdim_1d](d_x_com1, d_y_com1, d_x_com2, d_y_com2, higher_neighbors_talin_to_kindlin, crossNND_partner_ID_talin_to_kindlin, crossNND_partner_x_talin_to_kindlin, crossNND_partner_y_talin_to_kindlin)
-    
-    
-    #higher_neighbors_talin_to_kindlin = d_higher_neighbors_talin_to_kindlin.copy_to_host()
+    if not flag_3D:
+        NNDs_ex_kernel[griddim_1d, blockdim_1d](d_x_com1, d_y_com1, d_x_com2, d_y_com2, 
+            higher_neighbors_talin_to_kindlin, crossNND_partner_ID_talin_to_kindlin, 
+            crossNND_partner_x_talin_to_kindlin, crossNND_partner_y_talin_to_kindlin,
+            dum_arr, dum_arr, dum_arr)
 
-
+    
+    else:
+        NNDs_ex_kernel[griddim_1d, blockdim_1d](d_x_com1, d_y_com1, d_x_com2, d_y_com2, 
+            higher_neighbors_talin_to_kindlin, crossNND_partner_ID_talin_to_kindlin, 
+            crossNND_partner_x_talin_to_kindlin, crossNND_partner_y_talin_to_kindlin,
+            d_z_com1, d_z_com2, crossNND_partner_z_talin_to_kindlin)
+    
 
 
     NN_Talin_Kindlin = higher_neighbors_talin_to_kindlin[:,0]
@@ -357,132 +393,37 @@ def postprocessing_cross(protein1, protein2, npz_file1, npz_file2, resi_file1, r
             coloc_counter = coloc_counter + 1
         
         
-#Labeling_efficiency2_to_1 = 0
-    Labeling_efficiency1_to_2 = np.zeros(2)
-    Labeling_efficiency1_to_2[0] = coloc_counter/len(NN_Talin_Kindlin)*100    
-        
-        
-    
-    
-    """=================================
-    4) Calculate a local density map, which uses a threshold distance (how many neighbors at which distance??)
-    4a) Threshold distance
-    4b) Write a colored map, with each spot with x neighbors is a red dot etc.
-    ================================="""
-    
-    threshold_radius = np.array([10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 150, 200, 300, 500, 1000, 5000, 20000]) #threshold distance 30 nm in pixel, pixelsize = 130nm
-                    
-    #check for each cluster how many neighbors it has within this distance
-    # Let's start with Talin
-    #amountOfNeighbors_data1 = np.zeros(len(data1_x))
-    #amountOfNeighbors_data1_old = np.zeros((len(x_com1),len(threshold_radius)),dtype=int)
-    
-    
-    #for i in range(0, len(data1_x)):
-    #    amountOfNeighbors_data1.append([0])
-    #    for j in range(0, len(threshold_radius)):
-    #        amountOfNeighbors_data1[i].append(0)
-    
-    '''                 
-    s=timer()                
-    for i in range(0, len(x_com1)):
-        for j in range(0, len(x_com1)):
-            if i!=j:
-                current_distance = math.sqrt((x_com1[i]-x_com1[j])**2+(y_com1[i]- y_com1[j])**2)*130
-                if current_distance <= threshold_radius[len(threshold_radius)-1]:
-                    for k in range(0,len(threshold_radius)):
-                        if current_distance <= threshold_radius[k]:
-                            amountOfNeighbors_data1_old[i][k] = amountOfNeighbors_data1_old[i][k] + 1
-                    
-    e=timer()
-    print("amountOfNeighbors old:", e-s)
-    '''
-    """
-    s=timer()                
-    amountOfNeighbors_data1 = np.zeros((len(x_com1),len(threshold_radius)),dtype=int)
-    
-        
-        
-    blockdim_1d = 32
-    griddim_1d = len(amountOfNeighbors_data1)//blockdim_1d + 1
-    
-    amountofNeighbors_kernel[griddim_1d, blockdim_1d](d_x_com1, d_y_com1, amountOfNeighbors_data1, threshold_radius)
-    
+    #Labeling_efficiency1_to_2 = np.zeros(2)
+    #Labeling_efficiency1_to_2[0] = coloc_counter/len(NN_Talin_Kindlin)*100    
+    Labeling_efficiency_T1_K2 = coloc_counter/len(NN_Talin_Kindlin)*100    
         
     
-    e=timer()
-    print("amountOfNeighbors new:", e-s)
-    """
-    
-    '''
-    for i in range(len(amountOfNeighbors_data1_old)):
-        for k in range(len(threshold_radius)):
-            if amountOfNeighbors_data1_old[i][k] != amountOfNeighbors_data1[i][k]:
-                print("wrong", i, amountOfNeighbors_data1_old[i][k], amountOfNeighbors_data1[i][k])
-            
-    '''        
-            
-    """
-    #if filename2.isnumeric() == False:
-    
-    amountOfNeighbors_data2 = np.zeros((len(x_com2),len(threshold_radius)),dtype=int)
-    
-    blockdim_1d = 32
-    griddim_1d = len(amountOfNeighbors_data2)//blockdim_1d + 1
-    
-    amountofNeighbors_kernel[griddim_1d, blockdim_1d](d_x_com2, d_y_com2, amountOfNeighbors_data2, threshold_radius)
 
-             
-                
-
-
-    amountOfNeighbors_data1_to_data2 = np.zeros((len(x_com1),len(threshold_radius)),dtype=int)
-    blockdim_1d = 32
-    griddim_1d = len(amountOfNeighbors_data1_to_data2)//blockdim_1d + 1
-    
-    amountofNeighbors_ex_kernel[griddim_1d, blockdim_1d](d_x_com1, d_y_com1, d_x_com2, d_y_com2, amountOfNeighbors_data1_to_data2, threshold_radius)
-             
-                
-
-
-
-    amountOfNeighbors_data2_to_data1 = np.zeros((len(x_com2),len(threshold_radius)),dtype=int)
-    blockdim_1d = 32
-    griddim_1d = len(amountOfNeighbors_data2_to_data1)//blockdim_1d + 1
-    
-    amountofNeighbors_ex_kernel[griddim_1d, blockdim_1d](d_x_com2, d_y_com2, d_x_com1, d_y_com1, amountOfNeighbors_data2_to_data1, threshold_radius)
-                
-    """
-    
-    
-    
-    s=timer()    
 
     path =  os.path.split(filename)[0] + "/AdditionalOutputs/"
     fname = path + os.path.split(filename)[1]
     fname2 = path + os.path.split(filename2)[1]
 
-    np.savetxt('%s_coloc_Percentages_%s_to_%s.txt' %(fname2, protein2, protein1), Labeling_efficiency2_to_1, delimiter= ',')
-    np.savetxt('%s_coloc_Percentages_%s_to_%s.txt' %(fname, protein1, protein2), Labeling_efficiency1_to_2, delimiter= ',')
-    
-    #if filename2.isnumeric() == False:
+    #np.savetxt('%s_coloc_Percentages_%s_to_%s.txt' %(fname2, protein2, protein1), Labeling_efficiency2_to_1, delimiter= ',')
+    #np.savetxt('%s_coloc_Percentages_%s_to_%s.txt' %(fname, protein1, protein2), Labeling_efficiency1_to_2, delimiter= ',')
+    with open('%s_coloc_Percentage_%s_to_%s.txt' %(fname2, protein2, protein1), 'w') as f:
+        f.write(str(Labeling_efficiency_K2_T1))
+    with open('%s_coloc_Percentage_%s_to_%s.txt' %(fname, protein1, protein2), 'w') as f:
+        f.write(str(Labeling_efficiency_T1_K2))
+
     NNA = np.savetxt('%s_Neighbor_distance_%s_to_%s.csv' %(fname, protein1, protein2), NN_Talin_Kindlin)
     NNA = np.savetxt('%s_Neighbor_distance_%s_to_%s.csv' %(fname2, protein2, protein1), NN_Kindlin_Talin)
     
     NNA = np.savetxt('%s_higher_Neighbors_%s_to_%s.csv' %(fname2, protein2, protein1), higher_neighbors_kindlin_to_talin, delimiter= ',')
     NNA = np.savetxt('%s_higher_Neighbors_%s_to_%s.csv' %(fname, protein1, protein2), higher_neighbors_talin_to_kindlin, delimiter= ',')
-    
-    #NNA = np.savetxt('%s_amount_Of_Neighbors_%s_to_%s.csv' %(filename, protein1, protein2), amountOfNeighbors_data1_to_data2, delimiter= ',')
-    #NNA = np.savetxt('%s_amount_Of_Neighbors_%s_to_%s.csv' %(filename2, protein2, protein1), amountOfNeighbors_data2_to_data1, delimiter= ',')
-    
-    
-    
+ 
+
+
     df_resi1['crossNND_ID'] = crossNND_partner_ID_talin_to_kindlin
     df_resi1['crossNND_x'] = crossNND_partner_x_talin_to_kindlin
     df_resi1['crossNND_y'] = crossNND_partner_y_talin_to_kindlin
     df_resi1['crossNND'] = NN_Talin_Kindlin
     df_resi1['orientation'] = tools.angle(df_resi1['x'], df_resi1['y'], df_resi1['crossNND_x'], df_resi1['crossNND_y'])
-
 
 
     path = os.path.split(filename)[0] + "/"
@@ -513,75 +454,57 @@ def postprocessing_cross(protein1, protein2, npz_file1, npz_file2, resi_file1, r
 
 def postprocessing(protein, npz_file1, colocalization_radius):
 
-    '''Read in Files'''
-    #File 1 - Talin -> truepos
     
-    print(npz_file1)
     filename = npz_file1
-    
-    
     f1 = np.load(filename)
-
-    s=timer()
+    
     x_com1 = f1['new_com_x_cluster']   
     y_com1 = f1['new_com_y_cluster']
-    e = timer()
-    print("new import:", e-s)
     
+    try:
+        z_com1 = f1['new_com_z_cluster']
+        print("3D data detected.")
+        flag_3D = True
+    except:
+        print("2D data detected.")
+        flag_3D = False
+        
     
     NN_Talin_T = np.zeros(len(x_com1))
     
-    # File 2 - Kindlin
-    
-    
-    
+
     coloc_def = 0
-    
     coloc_def = int(colocalization_radius)
     
+    # A dummy variable for numba's 'optional' arguments
+    dum_arr = np.zeros(1)
+    
 
-    
-    '''====================================='''
-    
-    '''#2 = Go through clusters and find nearest neighbour in same file ; save distance to nearest neighbour in new file
-    ==========================='''
-    
     '''Talin calculation'''
     
-                 
-                    
-    '''====================================='''
-    
-    '''#2a = find nearest neighbor in same file (1st, 2nd, 3rd, 4th, 5th)
-    ==========================='''              
-    
     higher_neighbors_Talin = np.zeros((len(x_com1),10),dtype=float) #this gives you the 10 nearest neighbors
-    
     
     
     d_x_com1 = cuda.to_device(x_com1)
     d_y_com1 = cuda.to_device(y_com1)
     #d_higher_neighbors_Talin = cuda.to_device(higher_neighbors_Talin)
-    
-    
-    
+    if flag_3D:
+        d_z_com1 = cuda.to_device(z_com1)
     
     blockdim_1d = 32
     griddim_1d = len(x_com1)//blockdim_1d + 1
     
-    
-    NNDs_kernel[griddim_1d, blockdim_1d](d_x_com1, d_y_com1, higher_neighbors_Talin)
-    
-    
-    #higher_neighbors_Talin = d_higher_neighbors_Talin.copy_to_host()
-    
-    
-    
-    
+    if not flag_3D:
+        NNDs_kernel[griddim_1d, blockdim_1d](d_x_com1, d_y_com1, higher_neighbors_Talin, dum_arr)
+    else:
+        NNDs_kernel[griddim_1d, blockdim_1d](d_x_com1, d_y_com1, higher_neighbors_Talin, d_z_com1)
+        
+
     
     
     NN_Talin_T = higher_neighbors_Talin[:,0]
     
+    #calculate percentage of talins whose NND is smaller than coloc_def
     coloc_counter = 0
     
     for i in range(0, len(NN_Talin_T)):
@@ -590,71 +513,12 @@ def postprocessing(protein, npz_file1, colocalization_radius):
             
             
 
-    Labeling_efficiency2_to_1 = np.zeros(2)
-    Labeling_efficiency2_to_1[0] = coloc_counter/len(NN_Talin_T)*100 # percentage of talins that have another talin as a neighbor within the coloc_def distance
+    #Labeling_efficiency2_to_1 = np.zeros(2)
+    #Labeling_efficiency2_to_1[0] = coloc_counter/len(NN_Talin_T)*100 # percentage of talins that have another talin as a neighbor within the coloc_def distance
+    Labeling_efficiency_T1 = coloc_counter/len(NN_Talin_T)*100 # percentage of talins that have another talin as a neighbor within the coloc_def distance
                  
 
         
-    
-    
-    """=================================
-    4) Calculate a local density map, which uses a threshold distance (how many neighbors at which distance??)
-    4a) Threshold distance
-    4b) Write a colored map, with each spot with x neighbors is a red dot etc.
-    ================================="""
-    
-    threshold_radius = np.array([10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 150, 200, 300, 500, 1000, 5000, 20000]) #threshold distance 30 nm in pixel, pixelsize = 130nm
-                    
-    #check for each cluster how many neighbors it has within this distance
-    # Let's start with Talin
-    #amountOfNeighbors_data1 = np.zeros(len(data1_x))
-    
-    """amountOfNeighbors_data1_old = np.zeros((len(x_com1),len(threshold_radius)),dtype=int)
-    """
-    
-    #for i in range(0, len(data1_x)):
-    #    amountOfNeighbors_data1.append([0])
-    #    for j in range(0, len(threshold_radius)):
-    #        amountOfNeighbors_data1[i].append(0)
-    
-    '''                 
-    s=timer()                
-    for i in range(0, len(x_com1)):
-        for j in range(0, len(x_com1)):
-            if i!=j:
-                current_distance = math.sqrt((x_com1[i]-x_com1[j])**2+(y_com1[i]- y_com1[j])**2)*130
-                if current_distance <= threshold_radius[len(threshold_radius)-1]:
-                    for k in range(0,len(threshold_radius)):
-                        if current_distance <= threshold_radius[k]:
-                            amountOfNeighbors_data1_old[i][k] = amountOfNeighbors_data1_old[i][k] + 1
-                    
-    e=timer()
-    print("amountOfNeighbors old:", e-s)
-    '''
-    
-    """
-    s=timer()                
-    amountOfNeighbors_data1 = np.zeros((len(x_com1),len(threshold_radius)),dtype=int)
-    
-        
-        
-    blockdim_1d = 32
-    griddim_1d = len(amountOfNeighbors_data1)//blockdim_1d + 1
-    
-    amountofNeighbors_kernel[griddim_1d, blockdim_1d](d_x_com1, d_y_com1, amountOfNeighbors_data1, threshold_radius)
-    
-        
-    
-    e=timer()
-    print("amountOfNeighbors new:", e-s)
-    """
-
-    #print(os.getcwd())
-    #os.chdir(r"W:\users\reinhardt")
-    #print(os.getcwd())
-
-    #print(filename)
-    s=timer()    
     try:
         os.mkdir(os.path.split(filename)[0] + '/AdditionalOutputs')
     
@@ -662,33 +526,9 @@ def postprocessing(protein, npz_file1, colocalization_radius):
         print ("AdditionalOutputs folder already exists")
     path =  os.path.split(filename)[0] + "/AdditionalOutputs/"
     fname = path + os.path.split(filename)[1]
-    np.savetxt('%s_coloc_Percentage_%s.txt' %(fname, protein), Labeling_efficiency2_to_1, delimiter= ',')
+    #np.savetxt('%s_coloc_Percentage_%s.txt' %(fname, protein), Labeling_efficiency2_to_1, delimiter= ',')
+    with open('%s_coloc_Percentage_%s.txt' %(fname, protein), 'w') as f:
+        f.write(str(Labeling_efficiency_T1))
     
-    #NNA = np.savetxt('%s_amount_Of_Neighbors_%s.csv' %(filename, protein), amountOfNeighbors_data1, delimiter= ',')
-    NNA = np.savetxt('%s_threshold_radii.csv' %fname, threshold_radius)
     NNA = np.savetxt('%s_Neighbor_distance_%s.csv' %(fname, protein), NN_Talin_T)
-    
     NNA = np.savetxt('%s_higher_Neighbors_%s.csv' %(fname, protein), higher_neighbors_Talin, delimiter= ',')
-       
-    e=timer()
-    #print("save:", e-s)   
-    #NNA.create_dataset('NNA_Data1', data=NN_Talin_T)
-    #if filename2.isnumeric == False:
-    #    NNA.create_dataset('NNA_Data2', data=NN_Kindlin_K)
-    #    NNA.create_dataset('NNA_Data2_To_Data1', data=NN_Kindlin_Talin)
-    #    NNA.create_dataset('NNA_Data1_To_Data2', data=NN_Talin_Kindlin)
-    
-    
-    
-    
-    # plt.scatter(x_coords,y_coords,c=amountOfNeighbors_talin,cmap='hot')
-    #plt.colorbar();
-    
-    #print(a_group_key)
-    
-    #print(len(x_com1))
-    
-    #print(data)
-    
-    end_all = timer()
-    #print("total runtime:", end_all-start_all)
