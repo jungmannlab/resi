@@ -245,7 +245,7 @@ def postprocessing_cross(protein1, protein2, npz_file1, npz_file2, resi_file1, r
     y_com1 = f1['new_com_y_cluster']
 
     try:
-        z_com1 = f1['new_com_z_cluster']
+        z_com1 = f1['new_com_z_cluster'] # in px
         print("3D data detected.")
         flag_3D_1 = True
     except:
@@ -364,7 +364,7 @@ def postprocessing_cross(protein1, protein2, npz_file1, npz_file2, resi_file1, r
     crossNND_partner_x_talin_to_kindlin = np.zeros(len(x_com1),dtype=float)
     crossNND_partner_y_talin_to_kindlin = np.zeros(len(x_com1),dtype=float)
     if flag_3D:
-        crossNND_partner_z_talin_to_kindlin = np.zeros(len(x_com2),dtype=float)
+        crossNND_partner_z_talin_to_kindlin = np.zeros(len(x_com1),dtype=float)
 
     
     blockdim_1d = 32
@@ -422,7 +422,13 @@ def postprocessing_cross(protein1, protein2, npz_file1, npz_file2, resi_file1, r
     df_resi1['crossNND_ID'] = crossNND_partner_ID_talin_to_kindlin
     df_resi1['crossNND_x'] = crossNND_partner_x_talin_to_kindlin
     df_resi1['crossNND_y'] = crossNND_partner_y_talin_to_kindlin
+    if flag_3D:
+        df_resi1['crossNND_z'] = crossNND_partner_z_talin_to_kindlin # in px
     df_resi1['crossNND'] = NN_Talin_Kindlin
+    if flag_3D:
+        df_resi1['crossNND_dxy'] = np.sqrt((df_resi1['x']-df_resi1['crossNND_x'])**2+
+                                             (df_resi1['y']-df_resi1['crossNND_y'])**2)*130
+        df_resi1['crossNND_dz'] = (df_resi1['z']/130-df_resi1['crossNND_z'])*130
     df_resi1['orientation'] = tools.angle(df_resi1['x'], df_resi1['y'], df_resi1['crossNND_x'], df_resi1['crossNND_y'])
 
 
@@ -437,7 +443,13 @@ def postprocessing_cross(protein1, protein2, npz_file1, npz_file2, resi_file1, r
     df_resi2['crossNND_ID'] = crossNND_partner_ID_kindlin_to_talin
     df_resi2['crossNND_x'] = crossNND_partner_x_kindlin_to_talin
     df_resi2['crossNND_y'] = crossNND_partner_y_kindlin_to_talin
+    if flag_3D:
+        df_resi2['crossNND_z'] = crossNND_partner_z_kindlin_to_talin # in px
     df_resi2['crossNND'] = NN_Kindlin_Talin
+    if flag_3D:
+        df_resi2['crossNND_dxy'] = np.sqrt((df_resi2['x']-df_resi2['crossNND_x'])**2+
+                                             (df_resi2['y']-df_resi2['crossNND_y'])**2)*130
+        df_resi2['crossNND_dz'] = (df_resi2['z']/130-df_resi2['crossNND_z'])*130
     df_resi2['orientation'] = tools.angle(df_resi2['x'], df_resi2['y'], df_resi2['crossNND_x'], df_resi2['crossNND_y'])
 
     

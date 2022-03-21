@@ -679,7 +679,7 @@ def clusterer_resi(hdf5_file, radius, min_cluster_size, radius_z=0):
     y_av_wtd  = grouped.apply(lambda x: np.average(x['y'],weights=1/x['lpy']/x['lpy']))
     y_av_wtd.name = "y_av_wtd"
     if flag_3D:
-        z_av_wtd = grouped.apply(lambda x: np.average(x['z'])/pl)
+        z_av_wtd = grouped.apply(lambda x: np.average(x['z'])) #in grouped, which is based on df2 the z_coordinates are in nm
         z_av_wtd.name = "z_av_wtd"
     group_size = grouped.size()
     group_size.name = "group_size"
@@ -706,6 +706,8 @@ def clusterer_resi(hdf5_file, radius, min_cluster_size, radius_z=0):
     data3_y = y_av_wtd.values.tolist()
     if flag_3D:
         data3_z = z_av_wtd.values.tolist()
+        data3_z_pl = z_av_wtd.values/pl #transform to pixel
+        data3_z_pl = data3_z_pl.tolist()
     data3_photons = group_means['photons'].values.tolist()
     data3_sx = group_means['sx'].values.tolist()
     data3_sy = group_means['sy'].values.tolist()
@@ -785,5 +787,5 @@ def clusterer_resi(hdf5_file, radius, min_cluster_size, radius_z=0):
         np.savez('%s_varsD%s_%d_%s' %(filename[:-5], threshold_radius_str, cluster_size_threshold, str(radius_z)),
              data2_x=data2_x,data2_y=data2_y, data2_z=data2_z, data2_frames=data2_frames, data2_group=data2_group,
              new_com_x_cluster=data3_x, new_com_y_cluster=data3_y,
-             new_com_z_cluster=data3_z, amountOfNeighbors_data=amountOfNeighbors_data, 
+             new_com_z_cluster=data3_z_pl, amountOfNeighbors_data=amountOfNeighbors_data, 
              x_coords=x_coords, y_coords=y_coords, z_coords=z_coords)

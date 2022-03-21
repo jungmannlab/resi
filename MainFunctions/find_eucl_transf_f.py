@@ -235,8 +235,8 @@ def find_eucl_transf_f(folder_path, ch1_files, ch3_files):
             # estimate best eucl transf
             R,t = tools.rigid_transform_3D(A, B)
             params = pick, R, t
-            print('R', R, R.shape)
-            print('t', t, t.shape)
+            #print('R', R, R.shape)
+            #print('t', t, t.shape)
 
             # transform the data with the opt params 
             data_est = np.linalg.inv(R) @ (B - t)
