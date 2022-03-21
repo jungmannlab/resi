@@ -24,7 +24,7 @@ from MainFunctions.apply_eucl_transf_f import apply_eucl_transf_f
 
 
 '''Please copy and paste the path to the folder containing the data that should be analyzed.'''
-path = r"W:\users\reinhardt\z.software\Git\RESI\RESI\test_files\main_eucl_transf_Clustering"
+path = r"W:\users\reinhardt\z_raw\Resi\220315_disk-pair_R4CA\aligned\3d"
 # for testfiles: path = r"W:\users\reinhardt\z.software\Git\RESI\RESI\test_files\main_eucl_transf_Clustering"
 
 '''Please choose a value for the following two parameters.'''
@@ -35,8 +35,11 @@ colocalization_radius = 25  # (in nm) This is the distance necessary for the Pos
 
 '''Please specify which hdf5 files you want to analyze as well as the respective parameters. Please follow the following pattern'''
 
-data = [["R1", "R1_apicked", 4, 50],
-        ["R3", "R3_apicked", 4, 50]]
+data = [["R1", "R1_filter_apicked", 7, 30],
+        ["R3", "R3_filter_apicked", 7, 30]]
+
+
+radius_z = 20 # set to 0 for 2d data
 
 
 '''
@@ -83,7 +86,8 @@ if os.path.isfile(eucl_transf_data) != True:
 
     ch13_files = glob.glob(os.path.join(path_alignment_picks, "*.hdf5"))
     ch1_files = sorted(file for file in ch13_files if data[0][1] in file)
-    #print(ch1_files)
+    #print('ch13_files', ch13_files)
+    #print('ch1_files', ch1_files)
     # get the respective list for the ch3 files. 
     # Instead of extracting it in the same way from the ch13_files list
     # it will be created from the ch1_files list. If it would be extracted
@@ -95,6 +99,9 @@ if os.path.isfile(eucl_transf_data) != True:
         #print("1", ch1_file)
         #print("3", ch3_file)
 
+
+    if ch1_files == [] or ch3_files == []:
+        sys.exit("No files in channel 1 and/ore channel 2 were found.")
     find_eucl_transf_f(path, ch1_files, ch3_files)
 
 else:
@@ -142,10 +149,12 @@ def Clusterer_check(path, radius, min_cluster_size, filename_base, i):
             # check that the file itself is not a file produced by the clusterer itself (file does not contain ClusterD6_15 etc.)
             
                 npz_file = file[:-5] + "_varsD" + str(radius) + "_" + str(min_cluster_size) + ".npz"
+                if radius_z != 0:
+                    npz_file = file[:-5] + "_varsD" + str(radius) + "_" + str(min_cluster_size) + "_" + str(radius_z) + ".npz"
                 if os.path.isfile(npz_file) != True: 
                     # check that the file has not been clustered already
                     #print("clusterer starts the file", file)
-                    clusterer_resi(file, radius, min_cluster_size)
+                    clusterer_resi(file, radius, min_cluster_size, radius_z)
                     #print("clusterer has finished the file", file)
                     #print() 
                 
