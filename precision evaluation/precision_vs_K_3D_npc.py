@@ -20,10 +20,15 @@ import tools
 
 plt.close('all')
 
-files = [r'/Volumes/pool-miblab4/users/masullo/z.microscopy_processed/resi/sample_pick/R1_7nt_150pM_18mW_150ms_561_1_MMStack_Pos0.ome_locs_render_render_filter_aligned_apicked_ClusterD11_10_22.0_apicked.hdf5', 
-         r'/Volumes/pool-miblab4/users/masullo/z.microscopy_processed/resi/sample_pick/R2_7nt_100pM_18mW_150ms_561_1_MMStack_Pos0.ome_locs_render_render_filter_aligned_apicked_ClusterD11_10_22.0_apicked.hdf5',
-         r'/Volumes/pool-miblab4/users/masullo/z.microscopy_processed/resi/sample_pick/R3_7nt_100pM_18mW_150ms_561_1_MMStack_Pos0.ome_locs_render_render_filter_aligned_apicked_ClusterD11_10_22.0_apicked.hdf5',
-         r'/Volumes/pool-miblab4/users/masullo/z.microscopy_processed/resi/sample_pick/R4_7nt_100pM_18mW_150ms_561_1_MMStack_Pos0.ome_locs_render_render_filter_aligned_apicked_ClusterD11_10_22.0_apicked.hdf5']
+# files = [r'/Volumes/pool-miblab4/users/masullo/z.microscopy_processed/resi/sample_pick/R1_7nt_150pM_18mW_150ms_561_1_MMStack_Pos0.ome_locs_render_render_filter_aligned_apicked_ClusterD11_10_22.0_apicked.hdf5', 
+#          r'/Volumes/pool-miblab4/users/masullo/z.microscopy_processed/resi/sample_pick/R2_7nt_100pM_18mW_150ms_561_1_MMStack_Pos0.ome_locs_render_render_filter_aligned_apicked_ClusterD11_10_22.0_apicked.hdf5',
+#          r'/Volumes/pool-miblab4/users/masullo/z.microscopy_processed/resi/sample_pick/R3_7nt_100pM_18mW_150ms_561_1_MMStack_Pos0.ome_locs_render_render_filter_aligned_apicked_ClusterD11_10_22.0_apicked.hdf5',
+#          r'/Volumes/pool-miblab4/users/masullo/z.microscopy_processed/resi/sample_pick/R4_7nt_100pM_18mW_150ms_561_1_MMStack_Pos0.ome_locs_render_render_filter_aligned_apicked_ClusterD11_10_22.0_apicked.hdf5']
+
+files = [r'/Volumes/pool-miblab4/users/masullo/z.microscopy_processed/resi/aligned/R1_7nt_150pM_18mW_150ms_561_1_MMStack_Pos0.ome_locs_render_render_filter_aligned_apicked_ClusterD11_10_22.0.hdf5', 
+         r'/Volumes/pool-miblab4/users/masullo/z.microscopy_processed/resi/aligned/R2_7nt_100pM_18mW_150ms_561_1_MMStack_Pos0.ome_locs_render_render_filter_aligned_apicked_ClusterD11_10_22.0.hdf5',
+         r'/Volumes/pool-miblab4/users/masullo/z.microscopy_processed/resi/aligned/R3_7nt_100pM_18mW_150ms_561_1_MMStack_Pos0.ome_locs_render_render_filter_aligned_apicked_ClusterD11_10_22.0.hdf5',
+         r'/Volumes/pool-miblab4/users/masullo/z.microscopy_processed/resi/aligned/R4_7nt_100pM_18mW_150ms_561_1_MMStack_Pos0.ome_locs_render_render_filter_aligned_apicked_ClusterD11_10_22.0.hdf5']
 
 pxsize = 130 # nm
 σ_dnapaint = 4.5
