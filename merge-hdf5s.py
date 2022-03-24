@@ -10,18 +10,26 @@ import tools
 
 '''Please copy and paste the path to the folder containing the data that should be analyzed.'''
 
-path = r"W:\users\reinhardt\z.software\Git\RESI\RESI\test_files\main_eucl_transf_Clustering"
+path = r"W:\users\reinhardt\z_raw\Resi\220315_disk-pair_R4CA\aligned\3d"
+'''
+name_parts = ["resi", "R1", "info", ] # strings contained in the names of the files to be merged
+not_name_parts = ["full", "merge", "avg"] # strings not contained in the names of the files to be merged
+filename_merge = "z.test.R1_resi_info_merged.hdf5" # desired name for the merged file
+'''
+'''
+name_parts = ["resi_7_30_20", "R3", "info", ] # strings contained in the names of the files to be merged
+not_name_parts = ["full", "merge", "avg"] # strings not contained in the names of the files to be merged
+filename_merge = "c.R3_resi_info_7_30_20_merged.hdf5" # desired name for the merged file
+'''
+name_parts = ["ClusterD", "R3"] # strings contained in the names of the files to be merged
+not_name_parts = ["full", "merge", "avg"] # strings not contained in the names of the files to be merged
+filename_merge = "c.R3_ClusterD7_30_20_merged.hdf5" # desired name for the merged file
 
-name_parts = ["resi_merged", "ori", "K"] # strings contained in the names of the files to be merged
-not_name_parts = ["full"] # strings not contained in the names of the files to be merged
-filename_merge = "full_resi_data.hdf5" # desired name for the merged file
 
 dataframe_all = pd.DataFrame()
 
 counter = 0
 for file in glob.glob(os.path.join(path, "*.hdf5")): # searches all hdf5 files
-
-    print('loop started')
     
     filename = os.path.split(file)[1]
     #print([name_part in filename for name_part in name_parts],[not_name_part not in filename for not_name_part in not_name_parts])
@@ -47,7 +55,8 @@ for file in glob.glob(os.path.join(path, "*.hdf5")): # searches all hdf5 files
             dataframe_add = pd.DataFrame(data)
             dataframe_all = dataframe_all.append(dataframe_add, ignore_index = True)
 
-# dataframe_all = dataframe_all.sort_values(by=["group","frame"])
+#print(dataframe_all.keys())
+dataframe_all = dataframe_all.sort_values(by=["group","frame"])
 
 
 filename_old = os.path.split(filename_example)[1]

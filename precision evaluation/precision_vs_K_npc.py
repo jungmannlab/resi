@@ -20,14 +20,16 @@ import tools
 
 plt.close('all')
 
-files = ['test_files/full_aligned_clusterd_data_R1_apicked.hdf5', 
-         'test_files/full_aligned_clusterd_data_R3_apicked.hdf5']
+files = [r'/Volumes/pool-miblab4/users/masullo/z.microscopy_processed/resi/sample_pick/R1_7nt_150pM_18mW_150ms_561_1_MMStack_Pos0.ome_locs_render_render_filter_aligned_apicked_ClusterD11_10_22.0_apicked.hdf5', 
+         r'/Volumes/pool-miblab4/users/masullo/z.microscopy_processed/resi/sample_pick/R2_7nt_100pM_18mW_150ms_561_1_MMStack_Pos0.ome_locs_render_render_filter_aligned_apicked_ClusterD11_10_22.0_apicked.hdf5',
+         r'/Volumes/pool-miblab4/users/masullo/z.microscopy_processed/resi/sample_pick/R3_7nt_100pM_18mW_150ms_561_1_MMStack_Pos0.ome_locs_render_render_filter_aligned_apicked_ClusterD11_10_22.0_apicked.hdf5',
+         r'/Volumes/pool-miblab4/users/masullo/z.microscopy_processed/resi/sample_pick/R4_7nt_100pM_18mW_150ms_561_1_MMStack_Pos0.ome_locs_render_render_filter_aligned_apicked_ClusterD11_10_22.0_apicked.hdf5']
 
 pxsize = 130 # nm
 σ_dnapaint = 2.0 # nm
 
 
-K_array = np.array([1, 2, 3, 5, 10, 20, 30, 40, 60, 80, 100]) # number of localizations per subset
+K_array = np.array([1, 2, 3, 5]) # number of localizations per subset
 minsize = 5 # minimum number of resi localizations needed to consider the statistics
 σ_resi_mean_array = np.zeros(len(K_array))
 σ_resi_std_array = np.zeros(len(K_array))
@@ -41,17 +43,17 @@ for k, K in enumerate(K_array):
     
     resi_data, data = tools.get_resi_locs(files, K)
     
-    ## uncomment this lines if you want to get all localizations to plot 
-    # all_locs_x = np.append(np.array(resi_data['0']['x']),
-    #                         np.array(resi_data['1']['x'])) * pxsize
+    # uncomment this lines if you want to get all localizations to plot 
+    all_locs_x = np.append(np.array(resi_data['0']['x']),
+                            np.array(resi_data['1']['x'])) * pxsize
 
-    # all_locs_y = np.append(np.array(resi_data['0']['y']),
-    #                        np.array(resi_data['1']['y'])) * pxsize
+    all_locs_y = np.append(np.array(resi_data['0']['y']),
+                            np.array(resi_data['1']['y'])) * pxsize
     
     # nclusters = resi_data['0']['cluster_id'].max()+1
     σ_resi_list = []
     
-    for key in ['0', '1']:
+    for key in ['0', '1', '2', '3']:
         
         cluster_id_set = list(set(list(resi_data[key]['cluster_id'])))
 

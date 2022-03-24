@@ -59,6 +59,16 @@ print(df1A.keys())
 """
 grouped1A = df1A.groupby("group")
 
+try:
+    grouped1A['z']
+except:
+    print("Dataset 1 not averged: 2D data detected.")
+    flag_3D_1A = False
+else:
+    print("Dataset 1 not averged: 3D data detected.")
+    flag_3D_1A = True
+
+
 
 # file2
 # dataset 1, transformed (average) (B)
@@ -71,6 +81,14 @@ data1B = np.array(f1B[a_group_key])
 df1B = pd.DataFrame(data1B)
 grouped1B = df1B.groupby("group")
 
+try:
+    grouped1B['z']
+except:
+    print("Dataset 1 averged: 2D data detected.")
+    flag_3D_1B = False
+else:
+    print("Dataset 1 averged: 3D data detected.")
+    flag_3D_1B = True
 
 
 # File 3 - File to be averaged in another color channel!
@@ -82,8 +100,26 @@ a_group_key = list(f2A.keys())[0]
 data2A = np.array(f2A[a_group_key])
 
 df2A = pd.DataFrame(data2A)
+#print(df2A['group'].head())
 grouped2A = df2A.groupby("group")
+#print(grouped2A.head())
 
+try:
+    grouped2A['z']
+except:
+    print("Dataset 2 not averged: 2D data detected.")
+    flag_3D_2A = False
+else:
+    print("Dataset 2 not averged: 3D data detected.")
+    flag_3D_2A = True
+
+
+if not flag_3D_1A == flag_3D_1B:
+    sys.exit("The not averaged and the averaged version of dataset 1 both need to be either 2d or 3d.")
+if not flag_3D_1A == flag_3D_2A:
+    sys.exit("The dataset serving as a template for averaging and the dataset to be transformed both need to be either 2d or 3d.")
+
+flag_3D = flag_3D_1A
 
 
 
@@ -188,45 +224,87 @@ def rigid_transform_2D(A, B):
 
 
 df2B = df2A.copy()
-list2B_xy = []
-if 'orientation' in df2B.keys():
-    list2B_xy_cross = []
+if not flag_3D:
+    list2B_xy = []
+    if 'orientation' in df2B.keys():
+        list2B_xy_cross = []
+else:
+    list2B_xyz = []
+    if 'orientation' in df2B.keys():
+        list2B_xyz_cross = []
     
-for name, group_1A in grouped1A:
-    # name: the grouped1A dataframe was created by grouping by the group column corresponding to the pick identifier. 
+for name, group_2A in grouped2A:
+    # name: the grouped2A dataframe was created by grouping by the group column corresponding to the pick identifier. 
     #       name is thus the integer representing the current group in the loop.
-    # 1A_group is a dataframe containing only one group (with identifier name) of the complete grouped1A dataframe.
+    # group_2A is a dataframe containing only one group (with identifier name) of the complete grouped1A dataframe.
     
-    # Reconstract transformation applied to dataset 1 on by Picasso Average    
-    group_1A_xy = np.transpose(np.array(group_1A[['x','y']]))
-    group_1B_xy = np.transpose(np.array(grouped1B[['x','y']].get_group(name)))
-    R,t = rigid_transform_2D(group_1A_xy, group_1B_xy)
+    # There are some picks that were originally picked, but then were discarded during further analysis when one had
+    # a very close look at eve ry single pick. In such a case the pick with its ID is still present in grouped1A and 
+    # grouped1B, but does not exist anymore in grouped2A. Therefore, the code checks only takes the picks that are
+    # still present in grouped2A.
+
+    # Reconstract transformation applied to dataset 1 on by Picasso Average  
+    if not flag_3D:  
+        group_1A_xy = np.transpose(np.array(grouped1A[['x','y']].get_group(name)))
+        group_1B_xy = np.transpose(np.array(grouped1B[['x','y']].get_group(name)))
+        R,t = rigid_transform_2D(group_1A_xy, group_1B_xy)
+    else:
+        group_1A_xyz = np.transpose(np.array(grouped1A[['x','y','z']].get_group(name)))
+        group_1B_xyz = np.transpose(np.array(grouped1B[['x','y','z']].get_group(name)))
+        R,t = rigid_transform_3D(group_1A_xyz, group_1B_xyz)
+
 
     # Apply transformation to dataset 2
-    group_2A_xy = np.transpose(np.array(grouped2A[['x','y']].get_group(name)))
-    group_2B_xy = R @ group_2A_xy + t
-    list2B_xy.extend(list(np.transpose(group_2B_xy)))
+    if not flag_3D:
+        group_2A_xy = np.transpose(np.array(group_2A[['x','y']]))
+        group_2B_xy = R @ group_2A_xy + t
+        list2B_xy.extend(list(np.transpose(group_2B_xy)))
+    else:
+        group_2A_xyz = np.transpose(np.array(group_2A[['x','y','z']]))
+        group_2B_xyz = R @ group_2A_xyz + t
+        list2B_xyz.extend(list(np.transpose(group_2B_xyz)))
+    
     
     if 'orientation' in df2B.keys():
-        group_2A_xy_cross = np.transpose(np.array(grouped2A[['crossNND_x','crossNND_y']].get_group(name)))
-        group_2B_xy_cross = R @ group_2A_xy_cross + t
-        list2B_xy_cross.extend(list(np.transpose(group_2B_xy_cross)))
+        if not flag_3D:
+            group_2A_xy_cross = np.transpose(np.array(group_2A[['crossNND_x','crossNND_y']]))
+            group_2B_xy_cross = R @ group_2A_xy_cross + t
+            list2B_xy_cross.extend(list(np.transpose(group_2B_xy_cross)))
+        else:
+            group_2A_xyz_cross = np.transpose(np.array(group_2A[['crossNND_x','crossNND_y','crossNND_z']]))
+            group_2B_xyz_cross = R @ group_2A_xyz_cross + t
+            list2B_xyz_cross.extend(list(np.transpose(group_2B_xyz_cross)))
         
         
-        
 
+if not flag_3D:
+    df2B_xy = np.array(list2B_xy)
+    df2B['x'] = df2B_xy[:,0]
+    df2B['y'] = df2B_xy[:,1]
 
-df2B_xy = np.array(list2B_xy)
-df2B['x'] = df2B_xy[:,0]
-df2B['y'] = df2B_xy[:,1]
+    if 'orientation' in df2B.keys():
+        df2B_xy_cross = np.array(list2B_xy_cross)
+        df2B['crossNND_x'] = df2B_xy_cross[:,0]
+        df2B['crossNND_y'] = df2B_xy_cross[:,1]
 
-if 'orientation' in df2B.keys():
-    df2B_xy_cross = np.array(list2B_xy_cross)
-    df2B['crossNND_x'] = df2B_xy_cross[:,0]
-    df2B['crossNND_y'] = df2B_xy_cross[:,1]
+        df2B['orientation_avg'] = tools.angle(df2B['x'], df2B['y'], df2B['crossNND_x'], df2B['crossNND_y'])
 
-    df2B['orientation_avg'] = tools.angle(df2B['x'], df2B['y'], df2B['crossNND_x'], df2B['crossNND_y'])
+else:
+    
+    df2B_xyz = np.array(list2B_xyz)
+    df2B['x'] = df2B_xyz[:,0]
+    df2B['y'] = df2B_xyz[:,1]
+    df2B['z'] = df2B_xyz[:,2]
+    if 'orientation' in df2B.keys():
+        df2B_xyz_cross = np.array(list2B_xyz_cross)
+        df2B['crossNND_x'] = df2B_xyz_cross[:,0]
+        df2B['crossNND_y'] = df2B_xyz_cross[:,1]
+        df2B['crossNND_z'] = df2B_xyz_cross[:,2]
 
+        df2B['orientation_avg'] = tools.angle(df2B['x'], df2B['y'], df2B['crossNND_x'], df2B['crossNND_y'])
+        # NOTE: This is only the orientation in xy direction and does not consider the angle in z direction!
+    
+    
 df2B['Origami_ID'] = df2B['group']
 
 df2B_filename = os.path.split(filename2A)[1]

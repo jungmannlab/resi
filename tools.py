@@ -12,6 +12,7 @@ import h5py
 import os
 
 
+
 def angle(p1x, p1y, p2x, p2y):
     angle = np.zeros(len(p1x))
     for i in range(len(p1x)):
@@ -109,7 +110,6 @@ def get_resi_locs(files, K):
     """
     
     data = {}
-    nclusters = {}
     resi_locs = {}
     
     for i, file in enumerate(files):
@@ -117,16 +117,16 @@ def get_resi_locs(files, K):
         data[str(i)].rename(columns={'group': 'cluster_id'}, inplace=True)
         
     for key in data.keys():
-        
-        nclusters[key] = data[key]['cluster_id'].max()+1 # TODO: 0-index the clusters so they're easier to iterate 
-        
+                
         # initalize a list with the 'subset' property
         subsetslist = [-1]*data[key].shape[0] # -1 is the label for localizations not assigned to any subset
         data[key]['subset'] = subsetslist
+        
+        cluster_id_set = list(set(list(data[key]['cluster_id'])))
 
-        for i in range(1, nclusters[key]): # TODO: check 0-index vs 1-index in clusters
+        for _ , cluster_id in enumerate(cluster_id_set):
             
-            cluster = data[key].loc[data[key]['cluster_id'] == i] # get the table of cluster i   
+            cluster = data[key].loc[data[key]['cluster_id'] == cluster_id] # get the table of cluster i   
             indexes = cluster.index # get the (general) indexes of the localizations in this cluster
             nlocs = cluster.shape[0] # get the number of localizations in cluster i
             nsubsets = int(nlocs/K) # get number of subsets, given K
@@ -205,4 +205,60 @@ def simulate_data(fname, sites, locs_per_site, σ_dnapaint, plot=False):
         
     return "Simulated data successfully generated"
     
+
+def rigid_transform_3D(A, B):
+    """
+    source: https://github.com/nghiaho12/rigid_transform_3D/blob/master/rigid_transform_3D.py
+    Given two sets of 3D points and their correspondence the algorithm will return a least square optimal 
+    rigid transform (also known as Euclidean) between the two sets. The transform solves for 3D rotation and 3D translation, no scaling.
+
+
+    rigid transformation in 3D: R A + t = B
+
+    Input: expects 3xN matrix of points
+    Returns R,t
+    R = 3x3 rotation matrix
+    t = 3x1 column vector
+    """
+    assert A.shape == B.shape
+
+    num_rows, num_cols = A.shape
+    if num_rows != 3:
+        raise Exception(f"matrix A is not 3xN, it is {num_rows}x{num_cols}")
+
+    num_rows, num_cols = B.shape
+    if num_rows != 3:
+        raise Exception(f"matrix B is not 3xN, it is {num_rows}x{num_cols}")
+
+    # find mean row wise
+    centroid_A = np.mean(A, axis=1)
+    centroid_B = np.mean(B, axis=1)
+
+    # ensure centroids are 3x1
+    centroid_A = centroid_A.reshape(-1, 1)
+    centroid_B = centroid_B.reshape(-1, 1)
+
+    # subtract mean
+    Am = A - centroid_A
+    Bm = B - centroid_B
+
+    H = Am @ np.transpose(Bm)
+
+    # sanity check
+    #if linalg.matrix_rank(H) < 3:
+    #    raise ValueError("rank of H = {}, expecting 3".format(linalg.matrix_rank(H)))
+
+    # find rotation
+    U, S, Vt = np.linalg.svd(H)
+    R = Vt.T @ U.T
+
+    # special reflection case
+    if np.linalg.det(R) < 0:
+        print("det(R) < R, reflection detected!, correcting for it ...")
+        Vt[2,:] *= -1
+        R = Vt.T @ U.T
+
+    t = -R @ centroid_A + centroid_B
+
+    return R, t
     
