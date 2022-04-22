@@ -25,17 +25,17 @@ plt.close('all')
 #          r'/Volumes/pool-miblab4/users/masullo/z.microscopy_processed/resi/sample_pick/R3_7nt_100pM_18mW_150ms_561_1_MMStack_Pos0.ome_locs_render_render_filter_aligned_apicked_ClusterD11_10_22.0_apicked.hdf5',
 #          r'/Volumes/pool-miblab4/users/masullo/z.microscopy_processed/resi/sample_pick/R4_7nt_100pM_18mW_150ms_561_1_MMStack_Pos0.ome_locs_render_render_filter_aligned_apicked_ClusterD11_10_22.0_apicked.hdf5']
 
-files = [r'/Volumes/pool-miblab4/users/masullo/z.microscopy_processed/resi/aligned/R1_7nt_150pM_18mW_150ms_561_1_MMStack_Pos0.ome_locs_render_render_filter_aligned_apicked_ClusterD11_10_22.0.hdf5', 
-         r'/Volumes/pool-miblab4/users/masullo/z.microscopy_processed/resi/aligned/R2_7nt_100pM_18mW_150ms_561_1_MMStack_Pos0.ome_locs_render_render_filter_aligned_apicked_ClusterD11_10_22.0.hdf5',
-         r'/Volumes/pool-miblab4/users/masullo/z.microscopy_processed/resi/aligned/R3_7nt_100pM_18mW_150ms_561_1_MMStack_Pos0.ome_locs_render_render_filter_aligned_apicked_ClusterD11_10_22.0.hdf5',
-         r'/Volumes/pool-miblab4/users/masullo/z.microscopy_processed/resi/aligned/R4_7nt_100pM_18mW_150ms_561_1_MMStack_Pos0.ome_locs_render_render_filter_aligned_apicked_ClusterD11_10_22.0.hdf5']
+files = [r'W:/users/masullo/z.microscopy_processed/resi/aligned/R1_7nt_150pM_18mW_150ms_561_1_MMStack_Pos0.ome_locs_render_render_filter_aligned_apicked_ClusterD11_10_22.0.hdf5', 
+         r'W:/users/masullo/z.microscopy_processed/resi/aligned/R2_7nt_100pM_18mW_150ms_561_1_MMStack_Pos0.ome_locs_render_render_filter_aligned_apicked_ClusterD11_10_22.0.hdf5',
+         r'W:/users/masullo/z.microscopy_processed/resi/aligned/R3_7nt_100pM_18mW_150ms_561_1_MMStack_Pos0.ome_locs_render_render_filter_aligned_apicked_ClusterD11_10_22.0.hdf5',
+         r'W:/users/masullo/z.microscopy_processed/resi/aligned/R4_7nt_100pM_18mW_150ms_561_1_MMStack_Pos0.ome_locs_render_render_filter_aligned_apicked_ClusterD11_10_22.0.hdf5']
 
 pxsize = 130 # nm
 σ_dnapaint = 4.5
 σ_z_dnapaint = 2 * σ_dnapaint
 
 # K_array = np.array([1, 2, 3, 5, 10, 20, 30, 40, 60, 80, 100]) # number of localizations per subset
-K_array = np.array([1, 2, 3, 5, 10, 20]) # number of localizations per subset
+K_array = np.array([2, 10, 20]) # number of localizations per subset
 minsize = 5 # minimum number of resi localizations needed to consider the statistics
 σ_resi_mean_array = np.zeros(len(K_array))
 σ_resi_std_array = np.zeros(len(K_array))
@@ -50,14 +50,36 @@ for k, K in enumerate(K_array):
     print('K = ', K)
     
     resi_data, data = tools.get_resi_locs(files, K)
+            
+    dataframes = [resi_data['0'], resi_data['1'], resi_data['2'], resi_data['3']]
+    merged_resi = pd.concat(dataframes)
+    
+    path = r'W:/users/masullo/z.microscopy_processed/resi'
+    oldname = r'R1_7nt_150pM_18mW_150ms_561_1_MMStack_Pos0.ome_locs_render_render_filter_aligned_apicked_ClusterD11_10_22.0.hdf5'
+    path = r'W:/users/masullo/z.microscopy_processed/resi/aligned/'
+    tools.picasso_hdf5(merged_resi, 'npc_resampling_K' + str(K) + '_.hdf5', 
+                       oldname, path)
     
     ## uncomment this lines if you want to get all localizations to plot 
-    # all_locs_x = np.append(np.array(resi_data['0']['x']),
-    #                         np.array(resi_data['1']['x'])) * pxsize
+    # all_locs_x = np.concatenate((np.array(resi_data['0']['x']),
+    #                             np.array(resi_data['1']['x']),
+    #                             np.array(resi_data['2']['x']),
+    #                             np.array(resi_data['3']['x']))) * pxsize
 
-    # all_locs_y = np.append(np.array(resi_data['0']['y']),
-    #                        np.array(resi_data['1']['y'])) * pxsize
+    # all_locs_y = np.concatenate((np.array(resi_data['0']['y']),
+    #                             np.array(resi_data['1']['y']),
+    #                             np.array(resi_data['2']['y']),
+    #                             np.array(resi_data['3']['y']))) * pxsize
     
+    # all_locs_z = np.concatenate((np.array(resi_data['0']['z']),
+    #                             np.array(resi_data['1']['z']),
+    #                             np.array(resi_data['2']['z']),
+    #                             np.array(resi_data['3']['z']))) * pxsize
+    
+    # np.save('all_locs_x_K' + str(K) , all_locs_x)
+    # np.save('all_locs_y_K' + str(K) , all_locs_y)
+    # np.save('all_locs_z_K' + str(K) , all_locs_z)
+
     σ_resi_list = []
     σ_z_resi_list = []
     
