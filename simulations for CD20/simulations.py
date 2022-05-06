@@ -213,6 +213,7 @@ ax.plot(bins_2nn[:-1], freq_2nn, color=colors[1])
 ax.plot(bins_3nn[:-1], freq_3nn, color=colors[2])
 ax.plot(bins_4nn[:-1], freq_4nn, color=colors[3])
 
+ax.tick_params(direction='in')
 
 plt.tight_layout()
 
