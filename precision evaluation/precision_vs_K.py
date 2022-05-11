@@ -33,7 +33,6 @@ minsize = 5 # minimum number of resi localizations needed to consider the statis
 σ_resi_std_array = np.zeros(len(K_array))
 counter = np.zeros(len(K_array)) # counter to keep track of how many σ will be considered for each K
 
-
 # iterate over the array of different K values
 for k, K in enumerate(K_array):
     
@@ -49,7 +48,11 @@ for k, K in enumerate(K_array):
     #                        np.array(resi_data['1']['y'])) * pxsize
     
     # nclusters = resi_data['0']['cluster_id'].max()+1
+    
     σ_resi_list = []
+    
+    if K == 1:
+        cluster_size_array = [] # keep track of the size of the clusters
     
     for key in ['0', '1']:
         
@@ -61,6 +64,9 @@ for k, K in enumerate(K_array):
             # get each cluster localizations
             cluster = resi_data[key].loc[resi_data[key]['cluster_id'] == cluster_id]
             cluster_size = cluster.shape[0]
+            
+            if K == 1:
+                cluster_size_array.append(cluster_size)
             
             if cluster_size > minsize:
                 
@@ -84,6 +90,10 @@ for k, K in enumerate(K_array):
 
 print('Number of valid clusters (size > 5 locs) for each K are: ', counter)
 
+cluster_size_array = np.array(cluster_size_array)
+
+print('Average cluster size: ', cluster_size_array.mean())
+
 # plot results
      
 fig, ax = plt.subplots()
@@ -91,7 +101,7 @@ fig, ax = plt.subplots()
 ax.errorbar(K_array, σ_resi_mean_array, yerr=σ_resi_std_array, fmt='ko', 
             capsize=5, label='Measured data', zorder=2)
 
-ax.plot(np.arange(1, 120, 0.2), σ_dnapaint/np.arange(1, 120, 0.2)**(1/2), 
+ax.plot(np.arange(1, 300, 0.2), σ_dnapaint/np.arange(1, 300, 0.2)**(1/2), 
         color='#266DD3', label='$σ_{dna-paint} / K^{1/2}$')
 
 ax.set_xlabel('K')
