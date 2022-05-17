@@ -21,11 +21,12 @@ import tools
 
 
 plt.close('all')
-plt.style.use('dark_background')
-
+# plt.style.use('dark_background')
 
 pxsize = 130 # nm
 simulate = True
+
+ticks = False # change to True to show ticks and labels
 
 if simulate:
 
@@ -59,7 +60,7 @@ file_2 = ['simulated/simulated_data_ch2.hdf5']
 
 K = 1
 
-fig, ax = plt.subplots(4, 1, figsize=(20, 16)) # size matches len(K_array)
+fig, ax = plt.subplots(4, 1, figsize=(10, 20)) 
 
 resi_data_ch1, pre_resi_data_ch1 = tools.get_resi_locs(file_1, K)
 
@@ -73,17 +74,25 @@ all_locs_y_ch2 = np.array(resi_data_ch2['0']['y']) # simulation already in nm
     
 
     
-ax[0].scatter(all_locs_x_ch1, all_locs_y_ch1, color='#9EC1CF')
-ax[1].scatter(all_locs_x_ch2, all_locs_y_ch2, color='#9EE09E')
+ax[0].scatter(all_locs_x_ch1, all_locs_y_ch1, color='#27AAE1', s=5)
+ax[1].scatter(all_locs_x_ch2, all_locs_y_ch2, color='#9EE09E', s=5)
 
 ax[0].set_xlim(-30, 30)
 ax[1].set_xlim(-30, 30)
 
-ax[0].set_ylim(-6, 6)
-ax[1].set_ylim(-6, 6)
+ax[0].set_ylim(-10, 10)
+ax[1].set_ylim(-10, 10)
 
-# ax[0].set_aspect('equal')
-# ax[1].set_aspect('equal')
+ax[0].set_aspect('equal')
+ax[1].set_aspect('equal')
+
+
+if ticks == False:
+    
+    ax[0].tick_params(left = False, right = False , labelleft = False ,
+                      labelbottom = False, bottom = False)
+    ax[1].tick_params(left = False, right = False , labelleft = False ,
+                      labelbottom = False, bottom = False)
 
 bins = np.arange(-30, 30, 1)
     
@@ -94,13 +103,13 @@ counts_ch2, bins_ch2, _ = np.histogram2d(all_locs_x_ch2, all_locs_y_ch2, bins=bi
 counts1D_ch2 = np.sum(counts_ch2, axis=1)
 
 bins_centers_ch1 = (bins_ch1[:-1] + bins_ch1[1:])/2
-ax[2].bar(bins_centers_ch1, counts1D_ch1, width=1, edgecolor='k', color='#9EC1CF',
-          alpha=0.5, linewidth=0.1)
+ax[2].bar(bins_centers_ch1, counts1D_ch1, width=1, edgecolor='k', color='#27AAE1',
+          alpha=0.8, linewidth=0.1)
 
 
 bins_centers_ch2 = (bins_ch2[:-1] + bins_ch2[1:])/2
 ax[2].bar(bins_centers_ch2, counts1D_ch2, width=1, edgecolor='k', color='#9EE09E',
-          alpha=0.5, linewidth=0.1)
+          alpha=0.8, linewidth=0.1)
                 
 #Define the Gaussian function
 
@@ -136,6 +145,11 @@ ax[2].plot(np.linspace(bins[0], bins[-2], 1000),
     
 ax[2].set_xlim(-30, 30)
 
+if ticks == False:
+    
+    ax[2].tick_params(left = False, right = False , labelleft = False ,
+                      labelbottom = False, bottom = False)
+
 popt_ch1_resi = popt_ch1
 
 popt_ch1_resi[2], popt_ch1_resi[5], popt_ch1_resi[8]  = popt_ch1[2]/np.sqrt(200), popt_ch1[5]/np.sqrt(200), popt_ch1[8]/np.sqrt(200)
@@ -155,3 +169,8 @@ ax[3].plot(np.linspace(bins[0], bins[-2], 10000), multi_gauss(np.linspace(bins[0
 
 ax[3].set_xlim(-30, 30)
 ax[3].set_ylim(0, 1.1)
+
+if ticks == False:
+    
+    ax[3].tick_params(left = False, right = False , labelleft = False ,
+                      labelbottom = False, bottom = False)
