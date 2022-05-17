@@ -126,6 +126,8 @@ def get_resi_locs(files, K):
 
         for _ , cluster_id in enumerate(cluster_id_set):
             
+            print(cluster_id)
+            
             cluster = data[key].loc[data[key]['cluster_id'] == cluster_id] # get the table of cluster i   
             indexes = cluster.index # get the (general) indexes of the localizations in this cluster
             nlocs = cluster.shape[0] # get the number of localizations in cluster i

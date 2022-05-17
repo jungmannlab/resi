@@ -45,8 +45,8 @@ if simulate:
     sites = np.concatenate((means_ch1, means_ch2), axis=0)
     
     simulated_data_fname = os.getcwd() + '/simulated/simulated_data.hdf5' 
-    tools.simulate_data(simulated_data_fname, sites, locs_per_site=800, 
-                        σ_dnapaint=2.0) # creates simulated data file
+    tools.simulate_data(simulated_data_fname, sites, locs_per_site=8000, 
+                        σ_dnapaint=3.0) # creates simulated data file
 
 # resample for different K
     
@@ -68,7 +68,7 @@ for k, (ax, K) in enumerate(zip(*iterables)):
     binsmax = all_locs_x.max() + 10
     binsmin = all_locs_x.min() - 10
 
-    bins = np.arange(binsmin, binsmax, 0.2)
+    bins = np.arange(binsmin, binsmax, 0.3)
     
     ax.hist2d(all_locs_x, all_locs_y, bins=bins, cmap='hot')
     ax.title.set_text('K = {}'.format(K))
