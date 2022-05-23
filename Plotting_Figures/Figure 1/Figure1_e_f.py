@@ -26,7 +26,7 @@ plt.close('all')
 pxsize = 130 # nm
 simulate = True
 
-ticks = False # change to True to show ticks and labels
+ticks = True # change to True to show ticks and labels
 
 if simulate:
 
@@ -43,15 +43,15 @@ if simulate:
     
     simulated_data_fname_1_2 = os.getcwd() + '/simulated/simulated_data_ch1_ch2.hdf5' 
     tools.simulate_data(simulated_data_fname_1_2, sites, locs_per_site=200, 
-                        σ_dnapaint=2.0) # creates simulated data file
+                        σ_dnapaint=3.0) # creates simulated data file
     
     simulated_data_fname_1 = os.getcwd() + '/simulated/simulated_data_ch1.hdf5' 
     tools.simulate_data(simulated_data_fname_1, means_ch1, locs_per_site=200, 
-                        σ_dnapaint=2.0) # creates simulated data file
+                        σ_dnapaint=3.0) # creates simulated data file
     
     simulated_data_fname_2 = os.getcwd() + '/simulated/simulated_data_ch2.hdf5' 
     tools.simulate_data(simulated_data_fname_2, means_ch2, locs_per_site=200, 
-                        σ_dnapaint=2.0) # creates simulated data file
+                        σ_dnapaint=3.0) # creates simulated data file
 
 # resample for different K
     
@@ -60,7 +60,7 @@ file_2 = ['simulated/simulated_data_ch2.hdf5']
 
 K = 1
 
-fig, ax = plt.subplots(4, 1, figsize=(10, 20)) 
+fig, ax = plt.subplots(4, 1, figsize=(8, 20)) 
 
 resi_data_ch1, pre_resi_data_ch1 = tools.get_resi_locs(file_1, K)
 
@@ -74,14 +74,14 @@ all_locs_y_ch2 = np.array(resi_data_ch2['0']['y']) # simulation already in nm
     
 
     
-ax[0].scatter(all_locs_x_ch1, all_locs_y_ch1, color='#27AAE1', s=5)
-ax[1].scatter(all_locs_x_ch2, all_locs_y_ch2, color='#9EE09E', s=5)
+ax[0].scatter(all_locs_x_ch1, all_locs_y_ch1, color='#27AAE1', s=7.5)
+ax[1].scatter(all_locs_x_ch2, all_locs_y_ch2, color='#9EE09E', s=7.5)
 
-ax[0].set_xlim(-30, 30)
-ax[1].set_xlim(-30, 30)
+ax[0].set_xlim(-40, 40)
+ax[1].set_xlim(-40, 40)
 
-ax[0].set_ylim(-10, 10)
-ax[1].set_ylim(-10, 10)
+ax[0].set_ylim(-15, 15)
+ax[1].set_ylim(-15, 15)
 
 ax[0].set_aspect('equal')
 ax[1].set_aspect('equal')
@@ -94,7 +94,7 @@ if ticks == False:
     ax[1].tick_params(left = False, right = False , labelleft = False ,
                       labelbottom = False, bottom = False)
 
-bins = np.arange(-30, 30, 1)
+bins = np.arange(-40, 40, 1)
     
 counts_ch1, bins_ch1, _ = np.histogram2d(all_locs_x_ch1, all_locs_y_ch1, bins=bins, density=True)
 counts1D_ch1 = np.sum(counts_ch1, axis=1)
@@ -143,7 +143,7 @@ ax[2].plot(np.linspace(bins[0], bins[-2], 1000),
             multi_gauss(np.linspace(bins[0], bins[-2], 1000), *popt_ch2),
             color='#9EE09E', linewidth=3)
     
-ax[2].set_xlim(-30, 30)
+ax[2].set_xlim(-40, 40)
 
 if ticks == False:
     
@@ -167,10 +167,12 @@ popt_ch2_resi[0], popt_ch2_resi[3], popt_ch2_resi[6]  = 1, 1, 1
 ax[3].plot(np.linspace(bins[0], bins[-2], 10000), multi_gauss(np.linspace(bins[0], bins[-2], 10000), *popt_ch2_resi),
            color='#9EE09E', linewidth=3)
 
-ax[3].set_xlim(-30, 30)
+ax[3].set_xlim(-40, 40)
 ax[3].set_ylim(0, 1.1)
 
 if ticks == False:
     
     ax[3].tick_params(left = False, right = False , labelleft = False ,
                       labelbottom = False, bottom = False)
+    
+plt.savefig("figure1_e_f_light_high_res.png", dpi=1200)
