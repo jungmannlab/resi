@@ -19,8 +19,8 @@ plt.close('all')
 
 d = 2 # dimension of the simulation, d = 2 for 2D case, d = 3 for 3D
 mult = 2 # multiplicity of the molecular assembly (e.g. mult = 2 for dimers)
-D_dimer = 10
-density = 300e-6 # molecules per nm^2 (or nm^3)
+D_dimer = 6
+density = 50e-6 # molecules per nm^2 (or nm^3)
 σ_label = 5 # nm
 width = 80e3 # width of the simulated area in nm
 height = 80e3 # height of the simulated area in nm
@@ -81,6 +81,11 @@ from sklearn.neighbors import NearestNeighbors
 
 # flatten the array to get all molecules positions together
 pos = np.concatenate((pos[:, :, 0], pos[:, :, 1]), axis=0) 
+
+no_dimer_trick = False
+if no_dimer_trick:
+    pos = c_pos
+    mult = 1
 
 np.random.shuffle(pos)
 print(pos.shape)
