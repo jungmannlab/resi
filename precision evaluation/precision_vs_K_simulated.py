@@ -15,7 +15,6 @@ os.chdir(wdir)
 
 import numpy as np
 import matplotlib.pyplot as plt
-import pandas as pd
 import tools
 
 plt.close('all')

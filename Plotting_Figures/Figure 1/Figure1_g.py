@@ -27,7 +27,7 @@ if simulate:
 
     # origami sites (built manually) 
     
-    means_ch1 = np.array([[-20, 0], [0, 0], [20, 0]])
+    means_ch1 = np.array([[-21, 0], [-1, 0], [19, 0]])
     means_ch2 = means_ch1.copy()
     
     dx = 2.0 # in nm
@@ -38,13 +38,15 @@ if simulate:
     
     simulated_data_fname = os.getcwd() + '/simulated/simulated_data_fig1g.hdf5' 
     tools.simulate_data(simulated_data_fname, sites, locs_per_site=8000, 
-                        σ_dnapaint=2.0) # creates simulated data file
+                        σ_dnapaint=3.0) # creates simulated data file
 
 # resample for different K
     
 files = ['simulated/simulated_data_fig1g.hdf5']
 
-K_array = np.array([1, 5, 10, 50]) # number of localizations per subset
+# K_array = np.array([1, 5, 10, 50]) # number of localizations per subset
+K_array = np.array([10, 40, 100]) # number of localizations per subset
+
 
 fig0, ax0 = plt.subplots(4, 1, figsize=(16, 20)) # size matches len(K_array)
 
@@ -67,6 +69,9 @@ for k, (ax, K) in enumerate(zip(*iterables)):
     ax.set_xlabel('x (nm)')
     ax.set_ylabel('y (nm)')
     ax.set_aspect('equal')
+    
+    np.save(os.getcwd() + '/simulated/resi_locs_x_K' + str(K), all_locs_x)
+    np.save(os.getcwd() + '/simulated/resi_locs_y_K' + str(K), all_locs_y)
 
 
 
