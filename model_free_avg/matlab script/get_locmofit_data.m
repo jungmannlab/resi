@@ -6,8 +6,8 @@
 %data = load(path + "DNA-PAINT_Eduard_filter2_avg");
 %n_iter = 10;
 
-path = "W:\users\reinhardt\RESI\locmofit-avg\Eduard_analysis\";
-data = load(path + "DNA-PAINT_Eduard_filter2_avg");
+path = "W:\users\reinhardt\RESI\locmofit-avg\250122\RESI_cluster_center_z-inverted\analysis\";
+data = load(path + "250122_RESI_centers_z-inverted_avg");
 n_iter = 13;
 
 

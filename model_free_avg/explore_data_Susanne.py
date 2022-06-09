@@ -17,14 +17,14 @@ plt.close('all')
 
 locs = {}
 
-path = r'W:\users\reinhardt\RESI\locmofit-avg\Eduard_analysis'
+path = r'W:\users\reinhardt\RESI\locmofit-avg\250122\RESI_cluster_center_z-inverted\analysis'
 #iteration = 8
 
 method = 'RESI'
 
 """for exploration of iterations"""
 
-for i in range(1,11):
+for i in range(1,14):
     
     locs[str(i)] = pd.read_csv(path + '/' + 'avg_locs_'+str(i)+'.csv')
     
