@@ -57,8 +57,8 @@ def picasso_hdf5_empty_yaml(df, hdf5_fname, hdf5_oldname, path):
     yaml_newfile.close()   
     
 
-path = r'W:\users\reinhardt\RESI\locmofit-avg\Eduard_analysis'
-file = 'avg_locs_all_8.csv'
+path = r'W:\users\reinhardt\RESI\locmofit-avg\250122\all_imagers_raw\analysis'
+file = 'avg_locs_all_12.csv'
 
 
 method = 'RESI'
