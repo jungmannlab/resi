@@ -17,10 +17,12 @@ plt.close('all')
 
 # independent parameters
 
-d = 2 # dimension of the simulation, d = 2 for 2D case, d = 3 for 3D
+D = 2 # dimension of the simulation, d = 2 for 2D case, d = 3 for 3D
 mult = 2 # multiplicity of the molecular assembly (e.g. mult = 2 for dimers)
 D_dimer = 6
-density = 50e-6 # molecules per nm^2 (or nm^3)
+density_d = 5e-6 # molecules per nm^2 (or nm^3)
+density_m = 2e-6 # molecules per nm^2 (or nm^3)
+
 σ_label = 5 # nm
 width = 80e3 # width of the simulated area in nm
 height = 80e3 # height of the simulated area in nm
@@ -32,45 +34,47 @@ distribution = 'uniform'
 # dependent parameters
 
 # resolution = 4 * σ_dnapaint # minimal distance between clusters to consider them resolvable
-N = int(density * width * height)
+N_d = int(density_d * width * height)
+N_m = int(density_m * width * height)
 
 # =============================================================================
 # simulate molecules positions and calculate distances
 # =============================================================================
 
-c_pos = np.zeros((N, d)) # initialize array of central positions
+c_pos_dim = np.zeros((N_d, D)) # initialize array of central positions for dimers
+c_pos_mon = np.zeros((N_m, D)) # initialize array of central positions for monomers
 
-if d == 2:
+if D == 2:
     
     fig0, ax0 = plt.subplots()
     
     if distribution == 'uniform':
-        c_pos[:, 0], c_pos[:, 1] = [np.random.uniform(0, width, N), 
-                                    np.random.uniform(0, height, N)]
+        c_pos_dim[:, 0], c_pos_dim[:, 1] = [np.random.uniform(0, width, N_d), 
+                                                  np.random.uniform(0, height, N_d)]
         
     elif distribution == 'evenly spaced':
-        c_pos = np.mgrid[0:width:width/np.sqrt(N), 
-                         0:height:height/np.sqrt(N)].reshape(2,-1).T
+        c_pos_dim = np.mgrid[0:width:width/np.sqrt(N_d), 
+                             0:height:height/np.sqrt(N_d)].reshape(2,-1).T
         
-    ax0.scatter(c_pos[:, 0], c_pos[:, 1], alpha=0.5)
+    ax0.scatter(c_pos_dim[:, 0], c_pos_dim[:, 1], alpha=0.5)
     
     ax0.set_xlabel('x (nm)')
     ax0.set_ylabel('y (nm)')
-    ax0.set_title('Density = '+str(int(density*1e6))+'/$μm^2$')
+    ax0.set_title('Density = '+str(int(density_d*1e6))+'/$μm^2$')
     ax0.set_box_aspect(1)
 
-angle = np.random.uniform(0, 2*np.pi, N)
-D0 = np.random.normal(loc=D_dimer, scale=σ_label, size=N)
-D1 = np.random.normal(loc=D_dimer, scale=σ_label, size=N)
+angle = np.random.uniform(0, 2*np.pi, N_d)
+D0 = np.random.normal(loc=D_dimer, scale=σ_label, size=N_d)
+D1 = np.random.normal(loc=D_dimer, scale=σ_label, size=N_d)
 
-pos = np.zeros((N, d, mult))
+pos_dim = np.zeros((N_d, D, mult))
 
-pos[:, :, 0] = c_pos + np.array([D0*np.cos(angle), D0*np.sin(angle)]).T
-pos[:, :, 1] = c_pos - np.array([D1*np.cos(angle), D1*np.sin(angle)]).T
+pos_dim[:, :, 0] = c_pos_dim + np.array([D0*np.cos(angle), D0*np.sin(angle)]).T
+pos_dim[:, :, 1] = c_pos_dim - np.array([D1*np.cos(angle), D1*np.sin(angle)]).T
 
 # this plot should output dimers with its center, and two molecules marked with different colors
-ax0.scatter(pos[:, :, 0][:, 0], pos[:, :, 0][:, 1], alpha=0.5)
-ax0.scatter(pos[:, :, 1][:, 0], pos[:, :, 1][:, 1], alpha=0.5)
+ax0.scatter(pos_dim[:, :, 0][:, 0], pos_dim[:, :, 0][:, 1], alpha=0.5)
+ax0.scatter(pos_dim[:, :, 1][:, 0], pos_dim[:, :, 1][:, 1], alpha=0.5)
 
         
 # =============================================================================
@@ -80,32 +84,35 @@ ax0.scatter(pos[:, :, 1][:, 0], pos[:, :, 1][:, 1], alpha=0.5)
 from sklearn.neighbors import NearestNeighbors
 
 # flatten the array to get all molecules positions together
-pos = np.concatenate((pos[:, :, 0], pos[:, :, 1]), axis=0) 
+pos_dim = np.concatenate((pos_dim[:, :, 0], pos_dim[:, :, 1]), axis=0) 
 
 no_dimer_trick = False
 if no_dimer_trick:
-    pos = c_pos
+    pos_dim = c_pos_dim
     mult = 1
 
-np.random.shuffle(pos)
-print(pos.shape)
+np.random.shuffle(pos_dim)
+print(pos_dim.shape)
 # this plot should output dimers without its center, and two molecules marked with the same color
 fig1, ax1 = plt.subplots()
 
-ax1.scatter(pos[:, 0], pos[:, 1], alpha=0.5)
+ax1.scatter(pos_dim[:, 0], pos_dim[:, 1], alpha=0.5)
 
 ax1.set_xlabel('x (nm)')
 ax1.set_ylabel('y (nm)')
-ax1.set_title('Density = '+str(int(density*1e6))+'/$μm^2$')
+ax1.set_title('Density = '+str(int(density_d*1e6))+'/$μm^2$')
 ax1.set_box_aspect(1)
 
 # labelling correction
 labelling = True
 p = 0.5
 
+pos = pos_dim # fix for now, pos should include both pos_dim and pos_mon
+
 if labelling:
     
-    ids = np.random.choice(np.arange(mult*N), size=int((mult*N)*p), replace=False)
+    ids = np.random.choice(np.arange(mult*N_d), size=int((mult*N_d)*p), 
+                           replace=False)
     
     pos = pos[ids]
     
