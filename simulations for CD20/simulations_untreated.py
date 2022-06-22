@@ -8,6 +8,7 @@ Created on Wed May 25 16:48:42 2022
 
 import numpy as np
 import matplotlib.pyplot as plt
+import pandas as pd
 
 plt.close('all')
 
@@ -19,17 +20,24 @@ plt.close('all')
 
 D = 2 # dimension of the simulation, d = 2 for 2D case, d = 3 for 3D
 mult = 2 # multiplicity of the molecular assembly (e.g. mult = 2 for dimers)
-D_dimer = 5
-density_d = 45e-6 # molecules per nm^2 (or nm^3)
-density_m = 55e-6 # molecules per nm^2 (or nm^3)
+D_dimer = 6
+density_d = 50e-6 # molecules per nm^2 (or nm^3)
+density_m = 50e-6 # molecules per nm^2 (or nm^3)
 
 σ_label = 5 # nm
 width = 80e3 # width of the simulated area in nm
 height = 80e3 # height of the simulated area in nm
 depth = 5e3 # depth of the simulated area in nm
 
+dim_color = '#009FB7'
+mon_color = '#FE4A49'
+
 # distribution = 'evenly spaced'
 distribution = 'uniform'
+
+# labelling correction
+labelling = True
+p = 0.5
 
 # dependent parameters
 
@@ -47,7 +55,9 @@ c_pos_mon = np.zeros((N_m, D)) # initialize array of central positions for monom
 if D == 2:
     
     fig0, ax0 = plt.subplots() # dimers
+    fig0.suptitle('Dimers + their center')
     fig1, ax1 = plt.subplots() # monomers
+    fig1.suptitle('Monomers')
     
     if distribution == 'uniform':
         c_pos_dim[:, 0], c_pos_dim[:, 1] = [np.random.uniform(0, width, N_d), 
@@ -62,18 +72,18 @@ if D == 2:
         
         #TODO: complete for monomers
         
-    ax0.scatter(c_pos_dim[:, 0], c_pos_dim[:, 1], alpha=0.5)
+    ax0.scatter(c_pos_dim[:, 0], c_pos_dim[:, 1], alpha=0.5, marker='*')
     
     ax0.set_xlabel('x (nm)')
     ax0.set_ylabel('y (nm)')
-    ax0.set_title('Density = '+str(int(density_d*1e6))+'/$μm^2$')
+    ax0.set_title('Real density = '+str(int(density_d*1e6))+'/$μm^2$')
     ax0.set_box_aspect(1)
     
-    ax1.scatter(c_pos_mon[:, 0], c_pos_mon[:, 1], alpha=0.5)
+    ax1.scatter(c_pos_mon[:, 0], c_pos_mon[:, 1], alpha=0.5, color=mon_color)
     
     ax1.set_xlabel('x (nm)')
     ax1.set_ylabel('y (nm)')
-    ax1.set_title('Density = '+str(int(density_m*1e6))+'/$μm^2$')
+    ax1.set_title('Real density = '+str(int(density_m*1e6))+'/$μm^2$')
     ax1.set_box_aspect(1)
 
 angle = np.random.uniform(0, 2*np.pi, N_d)
@@ -86,8 +96,18 @@ pos_dim[:, :, 0] = c_pos_dim + np.array([D0*np.cos(angle), D0*np.sin(angle)]).T
 pos_dim[:, :, 1] = c_pos_dim - np.array([D1*np.cos(angle), D1*np.sin(angle)]).T
 
 # this plot should output dimers with its center, and two molecules marked with different colors
-ax0.scatter(pos_dim[:, :, 0][:, 0], pos_dim[:, :, 0][:, 1], alpha=0.5)
-ax0.scatter(pos_dim[:, :, 1][:, 0], pos_dim[:, :, 1][:, 1], alpha=0.5)
+ax0.scatter(pos_dim[:, :, 0][:, 0], pos_dim[:, :, 0][:, 1], alpha=0.5, 
+            color=dim_color )
+ax0.scatter(pos_dim[:, :, 1][:, 0], pos_dim[:, :, 1][:, 1], alpha=0.5, 
+            color=dim_color )
+
+length = 1000 # nm, length of the display area
+
+ax0.set_xlim(width/2, width/2 + length)
+ax0.set_ylim(width/2, width/2 + length)
+
+ax1.set_xlim(width/2, width/2 + length)
+ax1.set_ylim(width/2, width/2 + length)
 
         
 # =============================================================================
@@ -106,24 +126,23 @@ if no_dimer_trick:
     mult = 1
 
 np.random.shuffle(pos_dim)
-print(pos_dim.shape)
 
 # this plot should output dimers without its center, 
 # two molecules marked with the same color AND the monomers in another color
 fig2, ax2 = plt.subplots()
+fig2.suptitle('Monomers + dimers')
 
-ax2.scatter(pos_dim[:, 0], pos_dim[:, 1], alpha=0.5)
-ax2.scatter(pos_mon[:, 0], pos_mon[:, 1], alpha=0.5)
-
+ax2.scatter(pos_dim[:, 0], pos_dim[:, 1], alpha=0.5, color=dim_color)
+ax2.scatter(pos_mon[:, 0], pos_mon[:, 1], alpha=0.5, color=mon_color)
 
 ax2.set_xlabel('x (nm)')
 ax2.set_ylabel('y (nm)')
-ax2.set_title('Density = '+str(int(density_d*1e6))+'/$μm^2$')
+ax2.set_title('Real density = '+str(int((density_d + density_m)*1e6))+'/$μm^2$')
 ax2.set_box_aspect(1)
 
-# labelling correction
-labelling = True
-p = 0.5
+ax2.set_xlim(width/2, width/2 + length)
+ax2.set_ylim(width/2, width/2 + length)
+
 
 pos = np.concatenate((pos_dim, pos_mon)) 
 
@@ -138,10 +157,12 @@ if labelling:
     
     pos = pos[ids]
     
-    
-# this plot should output dimers taking into account labelling
+print(pos.shape)
 
+# this plot should output dimers taking into account labelling
 ax2.scatter(pos[:, 0], pos[:, 1], facecolors='none', edgecolors='k')
+
+# molecules with black edge are the ones actually labelled
 
 # nn calculation
     
@@ -168,9 +189,33 @@ for i in range(4):
     plt.tight_layout()
     
 ax_knn.set_xlim([0, 100])
+ax_knn.set_ylim([0, 0.022])
 
 ax_knn.set_xlabel('K-th nearest-neighbour distance (nm)')
 ax_knn.set_ylabel('Frequency')
 ax_knn.tick_params(direction='in')
 ax_knn.set_box_aspect(1)
+
+### plot experimental data
+
+colors = ['#4059AD', '#97D8C4', '#F4B942', '#363636']
+
+filename_resi = 'NND data control/well2_LTX_RESI_GFPNb_R1_400pM_2_RESI_higher_Neighbors_data1.csv'
+
+k_nn_resi = pd.read_csv(filename_resi, sep=',',header=None)
+
+for i in range(4):
+    
+    bins = np.arange(0, 1000, 2)
+    ax_knn.hist(k_nn_resi[i], bins=bins, alpha=0.7, color=colors[i], edgecolor='black', linewidth=0.1, density=True)
+
+    ax_knn.set_xlim([0, 200])
+    ax_knn.set_ylim([0, 0.022])
+    
+    ax_knn.set_xlabel('K-th nearest-neighbour distance (nm)')
+    ax_knn.set_ylabel('Frequency')
+    ax_knn.tick_params(direction='in')
+    ax_knn.set_box_aspect(1)
+    
+print('Observed density = ', 1e6 * pos.shape[0]/(width*height), 'molecules per μm^2')
     
