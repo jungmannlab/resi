@@ -19,9 +19,9 @@ plt.close('all')
 
 D = 2 # dimension of the simulation, d = 2 for 2D case, d = 3 for 3D
 mult = 2 # multiplicity of the molecular assembly (e.g. mult = 2 for dimers)
-D_dimer = 6
-density_d = 5e-6 # molecules per nm^2 (or nm^3)
-density_m = 2e-6 # molecules per nm^2 (or nm^3)
+D_dimer = 5
+density_d = 45e-6 # molecules per nm^2 (or nm^3)
+density_m = 55e-6 # molecules per nm^2 (or nm^3)
 
 σ_label = 5 # nm
 width = 80e3 # width of the simulated area in nm
@@ -34,7 +34,7 @@ distribution = 'uniform'
 # dependent parameters
 
 # resolution = 4 * σ_dnapaint # minimal distance between clusters to consider them resolvable
-N_d = int(density_d * width * height)
+N_d = int(density_d/2 * width * height) # divided by two because it's the number of centers of dimers
 N_m = int(density_m * width * height)
 
 # =============================================================================
@@ -46,15 +46,21 @@ c_pos_mon = np.zeros((N_m, D)) # initialize array of central positions for monom
 
 if D == 2:
     
-    fig0, ax0 = plt.subplots()
+    fig0, ax0 = plt.subplots() # dimers
+    fig1, ax1 = plt.subplots() # monomers
     
     if distribution == 'uniform':
         c_pos_dim[:, 0], c_pos_dim[:, 1] = [np.random.uniform(0, width, N_d), 
-                                                  np.random.uniform(0, height, N_d)]
+                                            np.random.uniform(0, height, N_d)]
+        
+        c_pos_mon[:, 0], c_pos_mon[:, 1] = [np.random.uniform(0, width, N_m), 
+                                            np.random.uniform(0, height, N_m)]
         
     elif distribution == 'evenly spaced':
         c_pos_dim = np.mgrid[0:width:width/np.sqrt(N_d), 
                              0:height:height/np.sqrt(N_d)].reshape(2,-1).T
+        
+        #TODO: complete for monomers
         
     ax0.scatter(c_pos_dim[:, 0], c_pos_dim[:, 1], alpha=0.5)
     
@@ -62,6 +68,13 @@ if D == 2:
     ax0.set_ylabel('y (nm)')
     ax0.set_title('Density = '+str(int(density_d*1e6))+'/$μm^2$')
     ax0.set_box_aspect(1)
+    
+    ax1.scatter(c_pos_mon[:, 0], c_pos_mon[:, 1], alpha=0.5)
+    
+    ax1.set_xlabel('x (nm)')
+    ax1.set_ylabel('y (nm)')
+    ax1.set_title('Density = '+str(int(density_m*1e6))+'/$μm^2$')
+    ax1.set_box_aspect(1)
 
 angle = np.random.uniform(0, 2*np.pi, N_d)
 D0 = np.random.normal(loc=D_dimer, scale=σ_label, size=N_d)
@@ -85,6 +98,7 @@ from sklearn.neighbors import NearestNeighbors
 
 # flatten the array to get all molecules positions together
 pos_dim = np.concatenate((pos_dim[:, :, 0], pos_dim[:, :, 1]), axis=0) 
+pos_mon = c_pos_mon # for monomers the array stays the same
 
 no_dimer_trick = False
 if no_dimer_trick:
@@ -93,25 +107,33 @@ if no_dimer_trick:
 
 np.random.shuffle(pos_dim)
 print(pos_dim.shape)
-# this plot should output dimers without its center, and two molecules marked with the same color
-fig1, ax1 = plt.subplots()
 
-ax1.scatter(pos_dim[:, 0], pos_dim[:, 1], alpha=0.5)
+# this plot should output dimers without its center, 
+# two molecules marked with the same color AND the monomers in another color
+fig2, ax2 = plt.subplots()
 
-ax1.set_xlabel('x (nm)')
-ax1.set_ylabel('y (nm)')
-ax1.set_title('Density = '+str(int(density_d*1e6))+'/$μm^2$')
-ax1.set_box_aspect(1)
+ax2.scatter(pos_dim[:, 0], pos_dim[:, 1], alpha=0.5)
+ax2.scatter(pos_mon[:, 0], pos_mon[:, 1], alpha=0.5)
+
+
+ax2.set_xlabel('x (nm)')
+ax2.set_ylabel('y (nm)')
+ax2.set_title('Density = '+str(int(density_d*1e6))+'/$μm^2$')
+ax2.set_box_aspect(1)
 
 # labelling correction
 labelling = True
 p = 0.5
 
-pos = pos_dim # fix for now, pos should include both pos_dim and pos_mon
+pos = np.concatenate((pos_dim, pos_mon)) 
+
+np.random.shuffle(pos)
+
+N = mult*N_d + N_m
 
 if labelling:
     
-    ids = np.random.choice(np.arange(mult*N_d), size=int((mult*N_d)*p), 
+    ids = np.random.choice(np.arange(N), size=int((N)*p), 
                            replace=False)
     
     pos = pos[ids]
@@ -119,7 +141,7 @@ if labelling:
     
 # this plot should output dimers taking into account labelling
 
-ax1.scatter(pos[:, 0], pos[:, 1], facecolors='none', edgecolors='k')
+ax2.scatter(pos[:, 0], pos[:, 1], facecolors='none', edgecolors='k')
 
 # nn calculation
     
@@ -136,7 +158,7 @@ for i in range(4):
     
     distances = _distances[:, i+1] # get the first neighbour distances
     
-    freq, bins = np.histogram(distances, bins=10000, density=True)
+    freq, bins = np.histogram(distances, bins=1000, density=True)
     
     bin_centers = (bins[:-1] + bins[1:]) / 2
     
