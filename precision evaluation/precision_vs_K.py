@@ -20,11 +20,21 @@ import tools
 
 plt.close('all')
 
-files = ['test_files/full_aligned_clusterd_data_R1_apicked.hdf5', 
-         'test_files/full_aligned_clusterd_data_R3_apicked.hdf5']
+# files = ['test_files/full_aligned_clusterd_data_R1_apicked.hdf5', 
+#          'test_files/full_aligned_clusterd_data_R3_apicked.hdf5']
+
+# channel_keys = ['0', '1']
+
+# files = ['test_files/figure3_k_resampling/nodel_R1_etc_ClusterD4_50_picked_multi_picked.hdf5',
+#          'test_files/figure3_k_resampling/nodel_R3_etc_aligned_ClusterD4_50_picked_multi_picked.hdf5']
+
+files = ['test_files/figure3_k_resampling/R1_ClusterD4_50_merged.hdf5', 
+         'test_files/figure3_k_resampling/R3_ClusterD4_50_merged.hdf5']
+
+channel_keys = ['0', '1']
 
 pxsize = 130 # nm
-σ_dnapaint = 2.0 # nm
+σ_dnapaint = 1.78 # nm
 
 
 K_array = np.array([1, 2, 3, 5, 10, 20, 30, 40, 60, 80, 100]) # number of localizations per subset
@@ -54,7 +64,7 @@ for k, K in enumerate(K_array):
     if K == 1:
         cluster_size_array = [] # keep track of the size of the clusters
     
-    for key in ['0', '1']:
+    for key in channel_keys:
         
         cluster_id_set = list(set(list(resi_data[key]['cluster_id'])))
 
@@ -108,6 +118,10 @@ ax.set_xlabel('K')
 ax.set_ylabel('$σ_{resi}$ (nm)')
 
 ax.legend()
+
+# np.save('K_array', K_array)
+# np.save('σ_resi_mean_array', σ_resi_mean_array)
+# np.save('σ_resi_std_array', σ_resi_std_array)
     
 
     
