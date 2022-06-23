@@ -200,7 +200,9 @@ ax_knn.set_box_aspect(1)
 
 colors = ['#4059AD', '#97D8C4', '#F4B942', '#363636']
 
-filename_resi = 'NND data control/well2_LTX_RESI_GFPNb_R1_400pM_2_RESI_higher_Neighbors_data1.csv'
+# filename_resi = 'NND data control/well2_LTX_RESI_GFPNb_R1_400pM_2_RESI_higher_Neighbors_data1.csv'
+
+filename_resi = 'NND data control/Additional data/well2_neg_GFPNb_R1_300pM_1_MMStack_Pos4.ome_locs_RCC1000_pick10_aligned_apicked_filter12_varsD9_25.npz_RESI.npz_higher_Neighbors_data1.csv'
 
 k_nn_resi = pd.read_csv(filename_resi, sep=',',header=None)
 
