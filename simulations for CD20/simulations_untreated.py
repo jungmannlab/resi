@@ -22,8 +22,8 @@ D = 2 # dimension of the simulation, d = 2 for 2D case, d = 3 for 3D
 mult = 2 # multiplicity of the molecular assembly (e.g. mult = 2 for dimers)
 
 D_dimer = 12 # real dimer distance in nm
-density_d = 50e-6 # molecules per nm^2 (or nm^3)
-density_m = 50e-6 # molecules per nm^2 (or nm^3)
+density_d = 45e-6 # molecules per nm^2 (or nm^3)
+density_m = 55e-6 # molecules per nm^2 (or nm^3)
 
 σ_label = 5 # nm
 width = 40e3 # width of the simulated area in nm
@@ -115,7 +115,6 @@ if plot_examples:
     
     ax1.set_xlim(width/2, width/2 + length)
     ax1.set_ylim(width/2, width/2 + length)
-
         
 # =============================================================================
 # NN calculation
@@ -177,7 +176,7 @@ for i in range(4):
     
     distances = _distances[:, i+1] # get the first neighbour distances
     
-    freq, bins = np.histogram(distances, bins=100, density=True)
+    freq, bins = np.histogram(distances, bins=200, density=True)
     bin_centers = (bins[:-1] + bins[1:]) / 2
     
     ax_knn.plot(bin_centers, freq, color=colors[i], linewidth=2, 
@@ -197,16 +196,40 @@ ax_knn.set_box_aspect(1)
 # plot experimental data for comparison
 # =============================================================================
 
-filename_resi = 'NND data control/well2_LTX_RESI_GFPNb_R1_400pM_2_RESI_higher_Neighbors_data1.csv'
+filename = 'dataset1/well2_LTX_RESI_GFPNb_R1_400pM_2_MMStack_Pos0.ome_locs1000_RCC500_pick13_filter12_apicked.hdf5_varsD8_15.npz_RESI.npz'
 
-# filename_resi = 'NND data control/Additional data/well2_neg_GFPNb_R1_300pM_1_MMStack_Pos4.ome_locs_RCC1000_pick10_aligned_apicked_filter12_varsD9_25.npz_RESI.npz_higher_Neighbors_data1.csv'
+data = dict(np.load(filename))
 
-k_nn_resi = pd.read_csv(filename_resi, sep=',',header=None)
+x = data['new_com_x_cluster']*130
+y = data['new_com_y_cluster']*130
+
+pos_exp = np.array([x, y]).T
+
+from sklearn.neighbors import NearestNeighbors
+
+### NN calculation ###
+    
+nbrs = NearestNeighbors(n_neighbors=5).fit(pos_exp) # find nearest neighbours
+_distances, _indices = nbrs.kneighbors(pos_exp) # get distances and indices
+# distances = _distances[:, 1] # get the first neighbour distances
+
+colors = ['#4059AD', '#97D8C4', '#F4B942', '#363636']
+# fig_knn, ax_knn = plt.subplots(figsize=(5, 5))
 
 for i in range(4):
+
+    # plot histogram of nn-distance of the simulation
     
-    bins = np.arange(0, 1000, 2)
-    ax_knn.hist(k_nn_resi[i], bins=bins, alpha=0.7, color=colors[i], edgecolor='black', linewidth=0.1, density=True)
+    distances = _distances[:, i+1] # get the first neighbour distances
+    
+    # freq, bins = np.histogram(distances, bins=100, density=True)
+    # bin_centers = (bins[:-1] + bins[1:]) / 2
+    
+    # ax_knn.plot(bin_centers, freq, color=colors[i], linewidth=2, 
+    #             label='uniform '+str(i+1)+'st-NN')
+    
+    bins = np.arange(0, 1000, 1)
+    ax_knn.hist(distances, bins=bins, alpha=0.7, color=colors[i], edgecolor='black', linewidth=0.1, density=True)
 
     ax_knn.set_xlim([0, 200])
     ax_knn.set_ylim([0, 0.022])
@@ -215,6 +238,35 @@ for i in range(4):
     ax_knn.set_ylabel('Frequency')
     ax_knn.tick_params(direction='in')
     ax_knn.set_box_aspect(1)
+    
+    plt.tight_layout()
+    
+# ax_knn.set_xlim([0, 100])
+# ax_knn.set_ylim([0, 0.022])
+
+ax_knn.set_xlabel('K-th nearest-neighbour distance (nm)')
+ax_knn.set_ylabel('Frequency')
+ax_knn.tick_params(direction='in')
+ax_knn.set_box_aspect(1)
+
+# filename_resi = 'dataset1/well2_LTX_RESI_GFPNb_R1_400pM_2_RESI_higher_Neighbors_data1.csv'
+
+# # filename_resi = 'dataset2/well2_neg_GFPNb_R1_300pM_1_MMStack_Pos4.ome_locs_RCC1000_pick10_aligned_apicked_filter12_varsD9_25.npz_RESI.npz_higher_Neighbors_data1.csv'
+
+# k_nn_resi = pd.read_csv(filename_resi, sep=',',header=None)
+
+# for i in range(4):
+    
+#     bins = np.arange(0, 1000, 1)
+#     ax_knn.hist(k_nn_resi[i], bins=bins, alpha=0.7, color=colors[i], edgecolor='black', linewidth=0.1, density=True)
+
+#     ax_knn.set_xlim([0, 200])
+#     ax_knn.set_ylim([0, 0.022])
+    
+#     ax_knn.set_xlabel('K-th nearest-neighbour distance (nm)')
+#     ax_knn.set_ylabel('Frequency')
+#     ax_knn.tick_params(direction='in')
+#     ax_knn.set_box_aspect(1)
     
 print('Observed density = ', 1e6 * pos.shape[0]/(width*height), 'molecules per μm^2')
     
