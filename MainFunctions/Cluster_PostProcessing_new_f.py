@@ -102,21 +102,20 @@ def NNDs_kernel(x_com, y_com, higher_neighbors_data, z_com=np.zeros(1)):
                                          (z_com[i]-z_com[j])**2)*130
 
         if j!= i:
+            row_done = False
             for z in range(0,len(higher_neighbors_data[1])):
                 
-                if z == 0:
-                    if higher_neighbors_data[i][z] == 0:
+                if z == 0 and not row_done and current_distance < higher_neighbors_data[i][z]:
+                        for k in range(len(higher_neighbors_data[1])-1, z,-1):
+                            higher_neighbors_data[i][k] =  higher_neighbors_data[i][k-1]
                         higher_neighbors_data[i][z] = current_distance
-            
-                    if current_distance < higher_neighbors_data[i][z]:
-                        higher_neighbors_data[i][z] = current_distance
+                        row_done = True
                       
-                if z!= 0:
-                    if higher_neighbors_data[i][z] == 0:
+                if z!= 0 and not row_done and current_distance < higher_neighbors_data[i][z] and current_distance > higher_neighbors_data[i][z-1]:
+                        for k in range(len(higher_neighbors_data[1])-1, z,-1):
+                            higher_neighbors_data[i][k] =  higher_neighbors_data[i][k-1]
                         higher_neighbors_data[i][z] = current_distance
-                     
-                    if current_distance < higher_neighbors_data[i][z] and current_distance > higher_neighbors_data[i][z-1]:
-                        higher_neighbors_data[i][z] = current_distance
+                        row_done = True
   
 #detects 1st, 2nd... 10th nearest neighbors between two species
 @cuda.jit
@@ -140,31 +139,24 @@ def NNDs_ex_kernel(x_com1, y_com1, x_com2, y_com2, higher_neighbors_data,
                                          (y_com1[i]-y_com2[j])**2+
                                          (z_com1[i]-z_com2[j])**2)*130
 
+        row_done = False
         for z in range(0,len(higher_neighbors_data[1])):
             
-            if z == 0:
-                if higher_neighbors_data[i][z] == 0:
+            if z == 0 and not row_done and current_distance < higher_neighbors_data[i][z]:
+                    for k in range(len(higher_neighbors_data[1])-1, z,-1):
+                        higher_neighbors_data[i][k] =  higher_neighbors_data[i][k-1]
                     higher_neighbors_data[i][z] = current_distance
                     crossNND_partner_ID[i] = j
                     crossNND_partner_x[i] = x_com2[j]
                     crossNND_partner_y[i] = y_com2[j]
                     crossNND_partner_z[i] = z_com2[j]
-
-        
-                if current_distance < higher_neighbors_data[i][z]:
+                    row_done = True
+                  
+            if z!= 0 and not row_done and current_distance < higher_neighbors_data[i][z] and current_distance > higher_neighbors_data[i][z-1]:
+                    for k in range(len(higher_neighbors_data[1])-1, z,-1):
+                        higher_neighbors_data[i][k] =  higher_neighbors_data[i][k-1]
                     higher_neighbors_data[i][z] = current_distance
-                    crossNND_partner_ID[i] = j
-                    crossNND_partner_x[i] = x_com2[j]
-                    crossNND_partner_y[i] = y_com2[j]
-                    crossNND_partner_z[i] = z_com2[j]
-                    
-            if z!= 0:
-                if higher_neighbors_data[i][z] == 0:
-                    higher_neighbors_data[i][z] = current_distance
-                 
-                if current_distance < higher_neighbors_data[i][z] and current_distance > higher_neighbors_data[i][z-1]:
-                    higher_neighbors_data[i][z] = current_distance
-  
+                    row_done = True
 
     
 #calculate amount of neighbors within a range of radii  
