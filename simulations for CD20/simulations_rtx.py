@@ -21,16 +21,16 @@ def prob_func(k, n, p):
 
 p = 0.5
 d1 = 12
-R = 12
+R = 8
 
 n_terms = 17 # number of prob terms to be calculated
 
 # TODO: think about a way to justify this, sum of uncertainty?
 
 σ_1nn = 6
-σ_2nn = 9 
-σ_3nn = 12
-σ_4nn = 15
+σ_2nn = 7
+σ_3nn = 8
+σ_4nn = 10
 
 # σ_1nn = 6
 # σ_2nn = 6
