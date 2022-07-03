@@ -21,16 +21,16 @@ def prob_func(k, n, p):
 
 p = 0.5
 d1 = 12
-R = 8
+R = 10
 
 n_terms = 17 # number of prob terms to be calculated
 
 # TODO: think about a way to justify this, sum of uncertainty?
 
-σ_1nn = 6
-σ_2nn = 7
-σ_3nn = 8
-σ_4nn = 10
+σ_1nn = 8
+σ_2nn = 8
+σ_3nn = 10
+σ_4nn = 12
 
 # σ_1nn = 6
 # σ_2nn = 6
@@ -199,21 +199,79 @@ ax3.set_ylabel('Norm Frequency')
 
 #######
 
-fig, ax = plt.subplots(figsize=(6,3))
+fig_knn, ax_knn = plt.subplots(figsize=(12,6))
 
-ax.set_xlim([0, 100])
-ax.set_ylim([0, 0.055])
-ax.set_xlabel('Kth NN distance (nm)')
-ax.set_ylabel('Norm Frequency')
+ax_knn.set_xlim([0, 100])
+ax_knn.set_ylim([0, 0.055])
+ax_knn.set_xlabel('Kth NN distance (nm)')
+ax_knn.set_ylabel('Norm Frequency')
 
 colors = ['#4059AD', '#97D8C4', '#F4B942', '#363636']
 
-ax.plot(bins_1nn[:-1], freq_1nn, color=colors[0])
-ax.plot(bins_2nn[:-1], freq_2nn, color=colors[1])
-ax.plot(bins_3nn[:-1], freq_3nn, color=colors[2])
-ax.plot(bins_4nn[:-1], freq_4nn, color=colors[3])
+ax_knn.plot(bins_1nn[:-1], freq_1nn, color=colors[0])
+ax_knn.plot(bins_2nn[:-1], freq_2nn, color=colors[1])
+ax_knn.plot(bins_3nn[:-1], freq_3nn, color=colors[2])
+ax_knn.plot(bins_4nn[:-1], freq_4nn, color=colors[3])
 
-ax.tick_params(direction='in')
+ax_knn.tick_params(direction='in')
 
 plt.tight_layout()
+
+# =============================================================================
+# plot experimental data for comparison
+# =============================================================================
+
+
+filename = 'NND data RTX/well2_CHO_A3_GFPAlfaCd20_RTXAlexa647_GFPNb_apicked_varsD9_15.npz_RESI.npz'
+
+data = dict(np.load(filename))
+
+x = data['new_com_x_cluster']*130
+y = data['new_com_y_cluster']*130
+
+pos = np.array([x, y]).T
+
+from sklearn.neighbors import NearestNeighbors
+
+### NN calculation ###
+    
+nbrs = NearestNeighbors(n_neighbors=6).fit(pos) # find nearest neighbours
+_distances, _indices = nbrs.kneighbors(pos) # get distances and indices
+# distances = _distances[:, 1] # get the first neighbour distances
+
+colors = ['#4059AD', '#97D8C4', '#F4B942', '#363636']
+# fig_knn, ax_knn = plt.subplots(figsize=(5, 5))
+
+for i in range(4):
+
+    # plot histogram of nn-distance of the simulation
+    
+    distances = _distances[:, i+1] # get the first neighbour distances
+    
+    # freq, bins = np.histogram(distances, bins=100, density=True)
+    # bin_centers = (bins[:-1] + bins[1:]) / 2
+    
+    # ax_knn.plot(bin_centers, freq, color=colors[i], linewidth=2, 
+    #             label='uniform '+str(i+1)+'st-NN')
+    
+    bins = np.arange(0, 1000, 2)
+    ax_knn.hist(distances, bins=bins, alpha=0.7, color=colors[i], edgecolor='black', linewidth=0.1, density=True)
+
+    # ax_knn.set_xlim([0, 200])
+    # ax_knn.set_ylim([0, 0.022])
+    
+    ax_knn.set_xlabel('K-th nearest-neighbour distance (nm)')
+    ax_knn.set_ylabel('Frequency')
+    ax_knn.tick_params(direction='in')
+    ax_knn.set_box_aspect(1)
+    
+    plt.tight_layout()
+    
+# ax_knn.set_xlim([0, 100])
+# ax_knn.set_ylim([0, 0.022])
+
+ax_knn.set_xlabel('K-th nearest-neighbour distance (nm)')
+ax_knn.set_ylabel('Frequency')
+ax_knn.tick_params(direction='in')
+ax_knn.set_box_aspect(1)
 
