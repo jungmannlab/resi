@@ -18,6 +18,7 @@ import matplotlib.pyplot as plt
 import tools
 
 plt.close('all')
+plt.rcParams.update({'font.size': 18})
 
 # pxsize = 130 # nm
 simulate = True
@@ -67,9 +68,9 @@ ax0.set_ylim(-30, 30)
     
 files = ['simulated/simulated_data1200.hdf5']
 
-K_array = np.array([1, 10, 30, 50, 80, 100]) # number of localizations per subset
+K_array = np.array([1, 2, 3, 4, 5, 10, 30, 50, 80, 100]) # number of localizations per subset
 
-fig3, ax3 = plt.subplots(2, 3, figsize=(20, 16)) # size matches len(K_array)
+fig3, ax3 = plt.subplots(2, 5, figsize=(20, 16)) # size matches len(K_array)
 
 iterables = [ax3.reshape(-1), K_array]
 

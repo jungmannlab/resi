@@ -22,12 +22,12 @@ D = 2 # dimension of the simulation, d = 2 for 2D case, d = 3 for 3D
 mult = 2 # multiplicity of the molecular assembly (e.g. mult = 2 for dimers)
 
 D_dimer = 12 # real dimer distance in nm
-density_d = 45e-6 # molecules per nm^2 (or nm^3)
-density_m = 55e-6 # molecules per nm^2 (or nm^3)
+density_d = 0e-6 # molecules per nm^2 (or nm^3)
+density_m = 100e-6 # molecules per nm^2 (or nm^3)
 
 σ_label = 5 # nm
-width = 40e3 # width of the simulated area in nm
-height = 40e3 # height of the simulated area in nm
+width = 300e3 # width of the simulated area in nm
+height = 300e3 # height of the simulated area in nm
 depth = 5e3 # depth of the simulated area in nm
 
 dim_color = '#009FB7'
@@ -179,6 +179,13 @@ for i in range(4):
     freq, bins = np.histogram(distances, bins=200, density=True)
     bin_centers = (bins[:-1] + bins[1:]) / 2
     
+    # if i == 0:
+    
+    #     data_aux = np.zeros((2, len(freq)))
+    #     data_aux[0, :] = bin_centers
+    #     data_aux[1, :] = freq
+    #     np.save('data_only_mon.npy', data_aux)
+
     ax_knn.plot(bin_centers, freq, color=colors[i], linewidth=2, 
                 label='uniform '+str(i+1)+'st-NN')
     
@@ -210,7 +217,7 @@ from sklearn.neighbors import NearestNeighbors
 ### NN calculation ###
     
 nbrs = NearestNeighbors(n_neighbors=5).fit(pos_exp) # find nearest neighbours
-_distances, _indices = nbrs.kneighbors(pos_exp) # get distances and indices
+_distances_exp, _indices_exp = nbrs.kneighbors(pos_exp) # get distances and indices
 # distances = _distances[:, 1] # get the first neighbour distances
 
 colors = ['#4059AD', '#97D8C4', '#F4B942', '#363636']
@@ -220,7 +227,7 @@ for i in range(4):
 
     # plot histogram of nn-distance of the simulation
     
-    distances = _distances[:, i+1] # get the first neighbour distances
+    distances_exp = _distances_exp[:, i+1] # get the first neighbour distances
     
     # freq, bins = np.histogram(distances, bins=100, density=True)
     # bin_centers = (bins[:-1] + bins[1:]) / 2
@@ -228,8 +235,8 @@ for i in range(4):
     # ax_knn.plot(bin_centers, freq, color=colors[i], linewidth=2, 
     #             label='uniform '+str(i+1)+'st-NN')
     
-    bins = np.arange(0, 1000, 1)
-    ax_knn.hist(distances, bins=bins, alpha=0.7, color=colors[i], edgecolor='black', linewidth=0.1, density=True)
+    bins = np.arange(0, 1000, 4)
+    ax_knn.hist(distances_exp, bins=bins, alpha=0.7, color=colors[i], edgecolor='black', linewidth=0.1, density=True)
 
     ax_knn.set_xlim([0, 200])
     ax_knn.set_ylim([0, 0.022])
@@ -269,4 +276,38 @@ ax_knn.set_box_aspect(1)
 #     ax_knn.set_box_aspect(1)
     
 print('Observed density = ', 1e6 * pos.shape[0]/(width*height), 'molecules per μm^2')
+
+
+# =============================================================================
+# plot 1st NN and compared to only monomers distribution
+# =============================================================================
     
+colors = ['#4059AD', '#97D8C4', '#F4B942', '#363636']
+fig_1stnn, ax_1stnn = plt.subplots(figsize=(5, 5))
+
+for i in range(1):
+
+    # plot histogram of nn-distance of the simulation
+    
+    distances = _distances[:, i+1] # get the first neighbour distances
+    
+    freq, bins = np.histogram(distances, bins=200, density=True)
+    bin_centers = (bins[:-1] + bins[1:]) / 2
+    
+    bins = np.arange(0, 1000, 1)
+    ax_1stnn.hist(_distances_exp[:, i+1], bins=bins, alpha=0.7, color=colors[i], 
+                  edgecolor='black', linewidth=0.1, density=True)
+    
+    ax_1stnn.plot(bin_centers, freq, color=colors[i], linewidth=2, 
+                label='uniform '+str(i+1)+'st-NN')
+    
+    plt.tight_layout()
+    
+    
+ax_1stnn.set_xlim([0, 100])
+ax_1stnn.set_ylim([0, 0.022])
+
+ax_1stnn.set_xlabel('K-th nearest-neighbour distance (nm)')
+ax_1stnn.set_ylabel('Frequency')
+ax_1stnn.tick_params(direction='in')
+ax_1stnn.set_box_aspect(1)

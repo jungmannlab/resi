@@ -56,6 +56,11 @@ if d == 2:
     ax0.set_xlabel('x (nm)')
     ax0.set_ylabel('y (nm)')
     ax0.set_title('Density = '+str(int(density*1e6))+'/$μm^2$')
+    
+    ax0.set_xlim(0, 1000)
+    ax0.set_ylim(0, 1000)
+    ax0.tick_params(direction='in')
+    ax0.set_box_aspect(1)
 
 elif d == 3:
     
@@ -77,11 +82,21 @@ distances = _distances[:, 1] # get the first neighbour distances
 
 # plot histogram of nn-distance
 fig1, ax1 = plt.subplots()
-counts, *_ = ax1.hist(distances, bins=50, alpha=0.5)
-ax1.set_xlabel('d_min (nm)')
-ax1.set_ylabel('Counts')
 
-ax1.vlines(resolution, ymin=0, ymax=np.max(counts), color='r', zorder=1)
+bins = np.arange(0, 200, 5)
+
+counts, *_ = ax1.hist(distances, bins=bins, alpha=0.5, edgecolor='black', linewidth=0.1, density=True)
+ax1.set_xlabel('d_min (nm)')
+ax1.set_ylabel('Frequency')
+ax1.tick_params(direction='in')
+ax1.set_box_aspect(1)
+
+plt.tight_layout()
+
+ax1.vlines(resolution, ymin=0, ymax=np.max(counts)+1, color='r', zorder=1)
+
+ax1.set_xlim(0, 200)
+ax1.set_ylim(0, 0.016)
 
 n_subres = len(distances[distances < resolution])
 n_subres_frac = n_subres/N

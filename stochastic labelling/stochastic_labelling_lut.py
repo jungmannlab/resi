@@ -23,11 +23,11 @@ d = 2 # dimension of the simulation, d = 2 for 2D case, d = 3 for 3D
 density_arr = np.linspace(1, 1000, 300) * 10**-6 # molecules per nm^2
 σ_dnapaint_arr = np.linspace(1, 20, 100) # nm
 # labelling_rounds = np.arange(1, 10)
-width = 80e3 # width of the simulated area in nm
-height = 80e3 # height of the simulated area in nm
+width = 8e3 # width of the simulated area in nm
+height = 8e3 # height of the simulated area in nm
 distribution = 'uniform'
 
-err_val = 0.05 # admitted frac of molecules closer than the resolution limit
+err_val = 0.10 # admitted frac of molecules closer than the resolution limit
 
 # dependent parameters
 
@@ -97,7 +97,7 @@ ax0.set_ylabel('Density ($μm^{-2}$)')
 # extent = [resolution_arr[0], resolution_arr[-1], 
 #           density_arr[0] * 10**6, density_arr[-1] * 10**6] # convert to μm^2
 # plot = ax1.imshow(err_val_arr, interpolation='None', extent=extent,
-#                  origin='lower', aspect='auto')
+#                   origin='lower', aspect='auto')
 # cbar1 = fig1.colorbar(plot, ax=ax1)
 # cbar1.set_label('Number of imaging rounds needed')
 
