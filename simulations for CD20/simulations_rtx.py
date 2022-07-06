@@ -4,6 +4,9 @@
 Created on Tue Apr 26 16:58:57 2022
 
 @author: masullo
+
+Chain-like model of RTX treated CD20 data
+
 """
 
 import numpy as np
@@ -239,7 +242,7 @@ nbrs = NearestNeighbors(n_neighbors=6).fit(pos) # find nearest neighbours
 _distances, _indices = nbrs.kneighbors(pos) # get distances and indices
 # distances = _distances[:, 1] # get the first neighbour distances
 
-colors = ['#4059AD', '#97D8C4', '#F4B942', '#363636']
+colors = ['#2880C4', '#97D8C4', '#F4B942', '#363636']
 # fig_knn, ax_knn = plt.subplots(figsize=(5, 5))
 
 for i in range(4):
