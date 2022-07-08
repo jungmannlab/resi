@@ -1,20 +1,30 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Mon Dec  6 16:50:04 2021
+@author: Luciano A. Masullo, Susanne Reinhardt
 
-@author: Luciano A. Masullo
-
-Apply to each origami the previously found eucl transform that optimizes
-the distance between the two channels.
-
+Apply to each origami the previously found eucl transform that minimizes
+the distance between alignment siteshe in the two channels.
+Input: The previously generated eucl_transf_data.csv
+Output: 
+    
+    
+    
+    
+    
+    saved in 'eucl_transf' subfolder
+- csv and excel file containing the rotation and translation parameters
+- pdf images of each origami showing the overlay of both rounds before and 
+  after the alignment.
 """
+
+
+
 
 import numpy as np
 import matplotlib.pyplot as plt
 from skimage import transform as tf
 import pandas as pd
-import h5py
 import os
 import re
 
