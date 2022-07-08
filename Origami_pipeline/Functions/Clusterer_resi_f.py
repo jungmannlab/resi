@@ -476,7 +476,85 @@ def save_locs_in_cluster(cluster_df, hdf5_file, radius_xy, min_locs, flag_3D, fl
     print(type(radius_xy), type(radius_z), type(min_locs))
 
 
+def wtd_sed_sums(group, x, lpx):
+    '''
+    Calculates the sums in the formula for the weighted standard error of the mean.
 
+    Parameters
+    ----------
+    group : grouped dataframe
+        This dataframe contains all localizations that were assigned to a cluster. 
+        It is grouped by the cluster identity saved in the 'group' column.
+    x : string
+        Key to extract the respective coordinate from the dataframe. 
+        Either 'x' or 'y'.
+    lpx : string
+        Key to extract the localization precision from the dataframe.
+        Either 'lpx' or 'lpy'
+
+    Returns
+    -------
+    pandas series
+        Sum in the formula for the weighted standard error of the mean.
+    '''
+    x = group[x]
+    w = 1/group[lpx]**2
+    
+    return (w * (x - (w * x).sum() / w.sum())**2).sum() / w.sum()
+
+
+def RESI_locs(grouped, flag_3D):
+    '''
+    Calculates the weighted mean for each cluster (RESI localization) as
+    well as the weighted standard error of the mean. 
+    The localization precisions in x and y direction serve as weights, 
+    in z direction no weights are available and the unweighted average is
+    calculated.
+
+    Parameters
+    ----------
+    cluster_df : dataframe
+        This dataframe contains all localizations that were assigned to a cluster. 
+        It is grouped by the cluster identity saved in the 'group' column.
+    flag_3D : bool
+        True if 3D dataset. False if 2D dataset.
+
+    Returns
+    -------
+    several pandas series
+        One pandas series containing the RESI localization for each direction, 
+        one for the number of DNA-PAINT locs per cluster and one for the weighted 
+        standard error of the mean. 
+
+    '''
+
+
+    
+
+    # RESI localization: Weighted mean of the DNA-PAINT localizations in each
+    # detected cluster. 
+    # Weights for x and y average: the inverse squared localization precision.
+    # No weights for z average as no localization precision in z is available.
+    x_av_wtd = grouped.apply(lambda x: np.average(x['x'],weights=1/x['lpx']/x['lpx']))
+    x_av_wtd.name = "x_av_wtd"
+    y_av_wtd  = grouped.apply(lambda x: np.average(x['y'],weights=1/x['lpy']/x['lpy']))
+    y_av_wtd.name = "y_av_wtd"
+    if flag_3D:
+        z_av_wtd = grouped.apply(lambda x: np.average(x['z'])) #in grouped, which is based on df2 the z_coordinates are in nm
+        z_av_wtd.name = "z_av_wtd"
+    group_size = grouped.size()
+    group_size.name = "group_size"
+
+    
+    # Weighted standard error of the mean for each RESI localization.
+    sed_x = np.sqrt(grouped.apply(wtd_sed_sums, "x", "lpx")/(group_size - 1))
+    sed_y = np.sqrt(grouped.apply(wtd_sed_sums, "y", "lpy")/(group_size - 1))
+    sed_xy = np.mean([sed_x, sed_y], axis = 0)
+    
+    if flag_3D:
+        return x_av_wtd, y_av_wtd, z_av_wtd, group_size, sed_xy
+    else:
+        return x_av_wtd, y_av_wtd, group_size, sed_xy
 
 
 
@@ -573,13 +651,113 @@ def clusterer_start(hdf5_file, radius_xy, min_locs, px_size, radius_z):
     cluster_df.reset_index(drop = True)
     #temp_locs = temp_locs[temp_locs.group != -1]
     
+    
     if flag_3D:
         save_locs_in_cluster(cluster_df, hdf5_file, radius_xy, min_locs, flag_3D, flag_group_input, radius_z)
     else:
         save_locs_in_cluster(cluster_df, hdf5_file, radius_xy, min_locs, flag_3D, flag_group_input)
 
+
+
+    grouped = cluster_df.groupby("group")
+    if flag_3D:
+        x_av_wtd, y_av_wtd, z_av_wtd, group_size, sed_xy = RESI_locs(grouped, flag_3D)
+    else:
+        x_av_wtd, y_av_wtd, group_size, sed_xy = RESI_locs(grouped, flag_3D)
+    
+
+    
+    group_means = grouped.mean()
+
+    data3_frames = group_means['frame'].values.tolist()
+    data3_x = x_av_wtd.values.tolist()
+    data3_y = y_av_wtd.values.tolist()
+    if flag_3D:
+        data3_z = z_av_wtd.values.tolist()
+        data3_z_pl = z_av_wtd.values/pl #transform to pixel
+        data3_z_pl = data3_z_pl.tolist()
+    data3_photons = group_means['photons'].values.tolist()
+    data3_sx = group_means['sx'].values.tolist()
+    data3_sy = group_means['sy'].values.tolist()
+    data3_bg = group_means['bg'].values.tolist()
+    data3_lpx = sed_xy.tolist()
+    data3_lpy = sed_xy.tolist()
+    if flag_3D:
+        data3_lpz = 2*sed_xy
+    data3_group = np.full(shape = len(data3_lpy), fill_value = np.mean(np.array(data['group']))) # group of origami, not of clusters in origami
+    data3_n = group_size.values.tolist()
+    
+    '''
+    Generating hdf5 file for picasso render
+    '''
+
+    try:
+        os.mkdir(os.path.split(filename)[0] + '/AdditionalOutputs')
+    except OSError:
+        print ("transf_overview folder already exists")
+
+    if not flag_3D:
+        data = {'frame': data3_frames, 'x': data3_x, 'y': data3_y, 
+                'photons': data3_photons, 'sx': data3_sx, 'sy': data3_sy, 
+                'bg': data3_bg, 'lpx': data3_lpx,'lpy': data3_lpy, 
+                'group': data3_group, 'n': data3_n}
+        
+        df = pd.DataFrame(data, index=range(len(data3_x)))
+        df = df.astype({'frame': 'u4', 'x': 'f4', 'y': 'f4', 
+                        'photons': 'f4', 'sx': 'f4', 'sy': 'f4',
+                        'bg': 'f4', 'lpx': 'f4','lpy': 'f4',
+                        'group': 'u4', 'n': 'u4'})
+        df3 = df.reindex(columns = ['frame', 'x', 'y', 'photons', 'sx', 'sy', 'bg', 'lpx', 'lpy', 'group', 'n'], fill_value=1)
+
+        path = os.path.split(filename)[0] + "/"
+        filename_old = os.path.split(filename)[1]
+        filename_new = '%s_resi_%s_%d.hdf5' % (filename_old[:-5], threshold_radius_str, cluster_size_threshold)
+        tools.picasso_hdf5(df3, filename_new, filename_old, path)
+
+    else:
+        data = {'frame': data3_frames, 'x': data3_x, 'y': data3_y, 'z': data3_z,
+                'photons': data3_photons, 'sx': data3_sx, 'sy': data3_sy, 
+                'bg': data3_bg, 'lpx': data3_lpx,'lpy': data3_lpy, 'lpz': data3_lpz,
+                'group': data3_group, 'n': data3_n}
+        
+        df = pd.DataFrame(data, index=range(len(data3_x)))
+        df = df.astype({'frame': 'u4', 'x': 'f4', 'y': 'f4', 'z': 'f4', 
+                        'photons': 'f4', 'sx': 'f4', 'sy': 'f4',
+                        'bg': 'f4', 'lpx': 'f4','lpy': 'f4', 'lpz': 'f4',
+                        'group': 'u4', 'n': 'u4'})
+        df3 = df.reindex(columns = ['frame', 'x', 'y', 'z', 'photons', 'sx', 'sy', 'bg', 'lpx', 'lpy', 'lpz', 'group', 'n'], fill_value=1)
+
+        path = os.path.split(filename)[0] + "/"
+        filename_old = os.path.split(filename)[1]
+        filename_new = '%s_resi_%s_%d_%s.hdf5' %(filename_old[:-5], threshold_radius_str, cluster_size_threshold, str(radius_z))
+        tools.picasso_hdf5(df3, filename_new, filename_old, path)
+
+
+    '''
+    Save Shapiro results to csv file
+    '''
+
+    path = os.path.split(filename)[0] + "/AdditionalOutputs/"
+    shapiro_filename = path + os.path.split(filename)[1][:-5]
+    shapiro_df.to_csv('%s_shapiro-wilk_%s_%d.csv' %(shapiro_filename, threshold_radius_str, cluster_size_threshold), index=False)
     
     
+    
+    '''
+    Save npz with arrays used for postprocessing
+    '''
+    if not flag_3D:
+        np.savez('%s_varsD%s_%d' %(filename[:-5], threshold_radius_str, cluster_size_threshold),
+             data2_x=data2_x,data2_y=data2_y, data2_frames=data2_frames, data2_group=data2_group,
+             new_com_x_cluster=data3_x, new_com_y_cluster=data3_y,
+             amountOfNeighbors_data=amountOfNeighbors_data, x_coords=x_coords, y_coords=y_coords) 
+    else:
+        np.savez('%s_varsD%s_%d_%s' %(filename[:-5], threshold_radius_str, cluster_size_threshold, str(radius_z)),
+             data2_x=data2_x,data2_y=data2_y, data2_z=data2_z, data2_frames=data2_frames, data2_group=data2_group,
+             new_com_x_cluster=data3_x, new_com_y_cluster=data3_y,
+             new_com_z_cluster=data3_z_pl, amountOfNeighbors_data=amountOfNeighbors_data, 
+             x_coords=x_coords, y_coords=y_coords, z_coords=z_coords)
+
   
 
 """
