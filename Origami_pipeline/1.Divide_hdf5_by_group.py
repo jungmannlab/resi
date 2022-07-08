@@ -6,7 +6,7 @@
 This script splits a Picasso hdf5 file into several seperate hdf5 files. 
 The localizations are assigned to a new file depending on their ID in the 
 'group' column of the hdf5 file.
-Thus we obtain one file per pick ( = per origami) made in Picasso Render 
+Output: One file per pick ( = per origami) made in Picasso Render 
 named by its group number: _ori0.hdf5, _ori1.hdf5 ....
 """
 
@@ -21,7 +21,7 @@ Specify the filepath as well as the filename of the hdf5 file.
 '''
 
 path = r"W:\users\reinhardt\z.software\Git\RESI\RESI\Origami_pipeline\TestData"
-filename = r"R3_filter_apicked.hdf5"
+filename = r"R1_filter_apicked.hdf5"
 
 
 

@@ -1,3 +1,13 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+@author: Susanne Reinhardt & Rafal Kowalewski based on the algorithm
+by Thomas Schlichthaerle
+
+Description!!!!!!!!!!            Clustering, Resi locs, 
+
+"""
+
 
 from timeit import default_timer as timer
 start_all = timer()
@@ -7,9 +17,65 @@ from numba import cuda
 import os
 import h5py
 import numpy as np
-import sys
-import math
 import tools
+
+
+def clusterer_picked_3D(x, y, z, frame, radius_xy, radius_z, min_locs):
+	"""
+	Clusters picked localizations while storing distance matrix and 
+	returns labels for each localization (3D).
+	z coordinate is scaled to account for different clustering radius
+	in z.
+	Works most efficiently if less than 600 locs are provided.
+	Parameters
+	----------
+	x : np.array
+		x coordinates of picked localizations
+	y : np.array
+		y coordinates of picked localizations
+	frame : np.array
+		Frame number for each localization
+	z : np.array
+		z coordinates of picked localizations
+	radius_xy : float
+		Clustering radius in x and y directions
+	radius_z : float
+		Clustering radius in z direction
+	min_locs : int
+		Minimum number of localizations in a cluster
+	Returns
+	-------
+	np.array
+		Labels for each localization
+	"""
+
+	xyz = _np.stack((x, y, z * (radius_xy/radius_z))).T # scale z
+	dist = _dm(xyz, xyz)
+	cluster_id = find_clusters_picked(dist, radius_xy)
+	cluster_id, true_cluster = postprocess_clusters(
+		cluster_id, min_locs, frame
+	)
+	return get_labels(cluster_id, true_cluster)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

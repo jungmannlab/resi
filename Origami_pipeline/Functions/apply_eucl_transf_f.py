@@ -5,15 +5,12 @@
 
 Apply to each origami the previously found eucl transform that minimizes
 the distance between alignment siteshe in the two channels.
-Input: The previously generated eucl_transf_data.csv
+Input: 
+- The previously generated eucl_transf_data.csv in the eucl_transf folder
+- The _ori0.hdf5, _ori1.hdf5 files for both imaging rounds
 Output: 
-    
-    
-    
-    
-    
-    saved in 'eucl_transf' subfolder
-- csv and excel file containing the rotation and translation parameters
+- For each oriN.hdf5 file of round 2 a aligned version oriN_aligned.hdf5 
+  is saved. 
 - pdf images of each origami showing the overlay of both rounds before and 
   after the alignment.
 """
@@ -30,23 +27,36 @@ import re
 
 import tools
 
-def apply_eucl_transf_f(folder_path, ch1_files, ch3_files):
+
+def apply_eucl_transf_f(folder_path, ch1_files, ch3_files, px_size):
+    '''
+    Applys the transformation found previously to each pick's round 2 (ch3)
+    file to get aligned with round 1 (ch1).
+
+    Parameters
+    ----------
+    folder_path : string
+        Rath to the folder containing the picked alignment sites for each 
+        origami and round.
+    ch1_files : list of strings
+        Filenames of all round 1 _oriN.hdf5 files.
+    ch3_files : list of strings
+        Filenames of all round 2 _oriN.hdf5 files.
+    px_size : int
+        Size of a pixel in nm.
+    '''
+    
     plt.close('all')
 
-    plt.close('all')
-
-    plt.close('all')
-
-    px_size = 130 # nm
-
+    # Load file with transformation parameters
     eucl_transf = pd.read_csv(os.path.join(folder_path,"eucl_transf/eucl_transf_data.csv"), delimiter='\t')
-    picks_array = eucl_transf['pick'].to_numpy()
-    #rot_array = eucl_transf['rotation'].to_numpy()
-    #tr_array = np.array([eucl_transf['translation x'].to_numpy(), 
-    #                      eucl_transf['translation y'].to_numpy()]).T
+    #picks_array = eucl_transf['pick'].to_numpy()
 
 
     for i, (file1, file3) in enumerate(zip(ch1_files, ch3_files)):
+        
+        # Check if Origami files from both channels were assigned correctly 
+        # to each other.
         match1 = re.search("ori(\d+)", file1)
         match3 = re.search("ori(\d+)", file3)
         if match1 and match3:
@@ -54,14 +64,16 @@ def apply_eucl_transf_f(folder_path, ch1_files, ch3_files):
                 pick = int(match1.group(1))
         
             else:
-                raise Exception('Origamis from channel 1 and channel 3 are not assigned correctly to each other.')
+                raise Exception('Origamis from channel 1 and channel 3 were not assigned correctly to each other.')
         else:
             raise Exception('Origamis from channel 1 and channel 3 cannot be assigned to each other. Check if "ori" followed by a number is included in the filenames.')
 
+
         # get the rotation and translation parameters for the current (file1, file3) pair
         transfo_i = eucl_transf.loc[eucl_transf['pick'] == pick]
-
-        
+        print(transfo_i)
+        print(pick)
+        # Load the localizations for each channel
         ch1_fulltable = pd.read_hdf(file1, key = 'locs')    
         ch1_fulltable['x'] = ch1_fulltable['x']*px_size # convert to nm
         ch1_fulltable['y'] = ch1_fulltable['y']*px_size
@@ -88,7 +100,7 @@ def apply_eucl_transf_f(folder_path, ch1_files, ch3_files):
         else:
             raise Exception('The data in both channels has to be either 2D or 3D data.')
         
-
+        # Perform the alignment by rotating the ch3 files to overlay with ch1
         if not flag_3D: # 2D
             ch1_locs = np.array([ch1_fulltable['x'].to_numpy(), 
                                  ch1_fulltable['y'].to_numpy()]).T
@@ -111,7 +123,7 @@ def apply_eucl_transf_f(folder_path, ch1_files, ch3_files):
             ax[0].set_ylabel('y (nm)')
             ax[0].legend()
             
-
+            # rotate and translate ch3
             ch3_locs_tr = transform(ch3_locs)
             
             ch3_fulltable['x'] = ch3_locs_tr[:, 0]
@@ -128,16 +140,13 @@ def apply_eucl_transf_f(folder_path, ch1_files, ch3_files):
             plt.tight_layout()
             
             # save into a new Picasso-formated hdf5
-            
             ch1_fulltable['x'] = ch1_fulltable['x']/px_size # convert to px
             ch1_fulltable['y'] = ch1_fulltable['y']/px_size   
             
             ch3_fulltable['x'] = ch3_fulltable['x']/px_size # convert to px
             ch3_fulltable['y'] = ch3_fulltable['y']/px_size   
 
-            #fname1 = 'R1_apicked_ori' + str(i) + '_aligned' + '.hdf5'
-            #fname3 = 'R3_apicked_ori' + str(i) + '_aligned' + '.hdf5'
-            
+
             filename3_old = os.path.split(file3)[1]
             filename3_aligned = filename3_old[:-5] + "_aligned.hdf5"
             tools.picasso_hdf5(df=ch3_fulltable, 
@@ -148,7 +157,6 @@ def apply_eucl_transf_f(folder_path, ch1_files, ch3_files):
         else: # 3D
 
             # prepare the data in the matrix form (the function rigid_transform_3D(A,B) expects the input arrays as 3xN arrays)
-
             ch1_locs = np.array([ch1_fulltable['x'].to_numpy(), 
                                  ch1_fulltable['y'].to_numpy(),
                                  ch1_fulltable['z'].to_numpy()])
@@ -156,17 +164,12 @@ def apply_eucl_transf_f(folder_path, ch1_files, ch3_files):
                                  ch3_fulltable['y'].to_numpy(),
                                  ch3_fulltable['z'].to_numpy()])
 
-            #print(transfo_i)
-            #print(transfo_i['rotation matrix'], type(transfo_i['rotation matrix']))
-            #print(transfo_i['rotation matrix'].values[0], type(transfo_i['rotation matrix'].values[0]))
-            
             rotation_str = transfo_i['rotation matrix'].values[0].replace('\n','').replace('[','').replace(']','').replace('  ',' ')
             rotation = np.fromstring((rotation_str), sep=' ').reshape((3,3))
-            #print('rotation', rotation, type(rotation), len(rotation))
             translation_str = transfo_i['translation vector'].values[0].replace('\n','').replace('[','').replace(']','').replace('  ',' ')
             translation = np.fromstring((translation_str), sep=' ').reshape((3,1))
-            print('translation', translation, type(translation), type(translation[0]))
-            
+
+
             # plot the data before eucl transf
             fig = plt.figure(figsize=(24,12))
 
@@ -203,7 +206,7 @@ def apply_eucl_transf_f(folder_path, ch1_files, ch3_files):
             ax.legend()
 
 
-            # transform the data with the opt params 
+            # rotate and translate ch3
             ch3_locs_tr = np.linalg.inv(rotation) @ (ch3_locs - translation)
             ch3_fulltable['x'] = ch3_locs_tr[0, :]
             ch3_fulltable['y'] = ch3_locs_tr[1, :]
@@ -253,9 +256,6 @@ def apply_eucl_transf_f(folder_path, ch1_files, ch3_files):
             ch3_fulltable['x'] = ch3_fulltable['x']/px_size # convert to px
             ch3_fulltable['y'] = ch3_fulltable['y']/px_size   
             
-            #fname1 = 'R1_apicked_ori' + str(i) + '_aligned' + '.hdf5'
-            #fname3 = 'R3_apicked_ori' + str(i) + '_aligned' + '.hdf5'
-            
             filename3_old = os.path.split(file3)[1]
             filename3_aligned = filename3_old[:-5] + "_aligned.hdf5"
             tools.picasso_hdf5(df=ch3_fulltable, 
@@ -274,4 +274,3 @@ def apply_eucl_transf_f(folder_path, ch1_files, ch3_files):
         match = re.search("ori(\d+)", filename3_aligned)
         plt.savefig(folder_path + '/transf_overview/' + 'origami' + str(match.group(1)) + '.pdf', format='pdf')
         
-        #TODO: save in Picasso compatible dataframe
