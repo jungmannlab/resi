@@ -54,11 +54,12 @@ import sys
 import glob
 import os
 import os.path
+import pandas as pd
 import itertools
 
 from Functions.find_eucl_transf_f import find_eucl_transf_f
 from Functions.apply_eucl_transf_f import apply_eucl_transf_f
-from MainFunctions.Clusterer_resi_f import clusterer_resi
+from Functions.Clusterer_resi_f import clusterer_start
 #from MainFunctions.Cluster_PostProcessing_new_f import postprocessing
 #from MainFunctions.Cluster_PostProcessing_new_f import postprocessing_cross
 
@@ -141,7 +142,7 @@ else:
 
 '''Perform Clustering'''
 '''============================================================================'''
-"""
+
 def Clusterer_check(path, radius, min_cluster_size, filename_base, i):
     Clusterer_filename_extension = "_ClusterD"+str(radius)+"_"+str(min_cluster_size)
     for file in glob.glob(os.path.join(path, "*.hdf5")): # searches all hdf5 files
@@ -170,7 +171,7 @@ def Clusterer_check(path, radius, min_cluster_size, filename_base, i):
                     npz_file = file[:-5] + "_varsD" + str(radius) + "_" + str(min_cluster_size) + "_" + str(radius_z) + ".npz"
                 if os.path.isfile(npz_file) != True: 
                     # Run the SMLM Clusterer and calculate RESI locs
-                    clusterer_resi(file, radius, min_cluster_size, radius_z)
+                    clusterer_start(file, radius, min_cluster_size, radius_z)
 
                
 '''Clusterer'''
@@ -182,7 +183,7 @@ for i in range(len(data)):
     filename_base = protein_info[1]
         
     Clusterer_check(path, radius, min_cluster_size, filename_base, i)
-"""
+
 
 
 '''Postprocessing'''

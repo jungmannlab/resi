@@ -12,12 +12,355 @@ Description!!!!!!!!!!            Clustering, Resi locs,
 from timeit import default_timer as timer
 start_all = timer()
 from numba import cuda
+from numba import njit as _njit
 
 
 import os
 import h5py
+import numpy as _np
 import numpy as np
+import pandas as pd
 import tools
+from scipy.spatial import distance_matrix as _dm
+
+@_njit 
+def count_neighbors_picked(dist, radius):
+	"""
+	Calculates number of neighbors for each point within a given 
+	radius.
+	Used in clustering picked localizations.
+	Parameters
+	----------
+	dist : np.array
+		2D distance matrix
+	radius : float
+		Radius within which neighbors are counted
+	Returns
+	-------
+	np.array
+		1D array with number of neighbors for each point within radius
+	"""
+
+	nn = _np.zeros(dist.shape[0], dtype=_np.int32)
+	for i in range(len(nn)):
+		nn[i] = _np.where(dist[i] <= radius)[0].shape[0] - 1
+	return nn
+
+
+@_njit
+def local_maxima_picked(dist, nn, radius):
+	"""
+	Finds which localizations are local maxima, i.e., localizations 
+	with the highest number of neighbors within given radius.
+	Used in clustering picked localizations.
+	Parameters
+	----------
+	dist : np.array
+		2D distance matrix
+	nn : np.array
+		1D array with number of neighbors for each localization
+	radius : float
+		Radius within which neighbors are counted	
+	Returns
+	-------
+	np.array
+		1D array with 1 if a localization is a local maximum, 
+		0 otherwise	
+	"""
+
+	n = dist.shape[0]
+	lm = _np.zeros(n, dtype=_np.int8)
+	for i in range(n):
+		for j in range(n):
+			if dist[i][j] <= radius and nn[i] >= nn[j]:
+				lm[i] = 1
+			if dist[i][j] <= radius and nn[i] < nn[j]:
+				lm[i] = 0
+				break
+	return lm
+
+
+@_njit
+def assign_to_cluster_picked(dist, lm, radius):
+	"""
+	Finds cluster id for each localization.
+	If a localization is within radius from a local maximum, it is
+	assigned to a cluster. Otherwise, it's id is 0.
+	Used in clustering picked localizations.
+	Parameters
+	----------
+	dist : np.array
+		2D distance matrix
+	lm : np.array
+		1D array with local maxima
+	radius : float
+		Radius within which neighbors are counted	
+	Returns
+	-------
+	np.array
+		1D array with cluster id for each localization
+	"""
+
+	n = dist.shape[0]
+	cluster_id = _np.zeros(n, dtype=_np.int32)
+	for i in range(n):
+		if lm[i]:
+			for j in range(n):
+				if dist[i][j] <= radius:
+					if cluster_id[i] != 0:
+						if cluster_id[j] == 0:
+							cluster_id[j] = cluster_id[i]
+					if cluster_id[i] == 0:
+						if j == 0:
+							cluster_id[i] = i + 1
+						cluster_id[j] = i + 1
+	return cluster_id
+
+
+
+@_njit
+def check_cluster_size(cluster_n_locs, min_locs, cluster_id):
+	"""
+	Filters clusters with too few localizations.
+	Parameters
+	----------
+	cluster_n_locs : np.array
+		Contains number of localizations for each cluster
+	min_locs : int
+		Minimum number of localizations to consider a cluster valid
+	cluster_id : np.array
+		Array with cluster id for each localization
+	Returns
+	-------
+	np.array
+		cluster_id after filtering
+	"""
+
+	for i in range(len(cluster_id)):
+		if cluster_n_locs[cluster_id[i]] <= min_locs: # too few locs
+			cluster_id[i] = 0 # id 0 means loc is not assigned to any cluster
+	return cluster_id
+
+
+@_njit
+def rename_clusters(cluster_id, clusters):
+	"""
+	Reassign cluster ids after filtering (to make them consecutive)
+	Parameters
+	----------
+	cluster_id : np.array
+		Contains cluster id for each localization (after filtering)
+	clusters : np.array
+		Unique cluster ids
+	Returns
+	-------
+	np.array
+		Cluster ids with consecutive values
+	"""
+
+	for i in range(len(cluster_id)):
+		for j in range(len(clusters)):
+			if cluster_id[i] == clusters[j]:
+				cluster_id[i] = j
+	return cluster_id
+
+
+@_njit 
+def cluster_properties(cluster_id, n_clusters, frame):
+	"""
+	Finds cluster properties used in frame analysis.
+	Returns mean frame and highest fraction of localizations within
+	1/20th of whole acquisition time for each cluster.
+	Parameters
+	----------
+	cluster_id : np.array
+		Contains cluster id for each localization
+	n_clusters : int
+		Total number of clusters
+	frame : np.array
+		Frame number for each localization
+	Returns
+	-------
+	np.array
+		Mean frame for each cluster
+	np.array
+		Highest fraction of localizations within 1/20th of whole
+		acquisition time.
+	"""
+
+	# mean frame for each cluster
+	mean_frame = _np.zeros(n_clusters, dtype=_np.float32)
+	# number of locs in each cluster
+	n_locs_cluster = _np.zeros(n_clusters, dtype=_np.int32)
+	# number of locs in each cluster in each time window (1/20th 
+	# acquisition time)
+	locs_in_window = _np.zeros((n_clusters, 21), dtype=_np.int32)
+	# highest fraction of localizations within the time windows 
+	# for each cluster
+	locs_frac = _np.zeros(n_clusters, dtype=_np.float32)
+	# length of the time window
+	window_search = frame[-1] / 20
+	for j in range(n_clusters):
+		for i in range(len(cluster_id)):
+			if j == cluster_id[i]:
+				n_locs_cluster[j] += 1
+				mean_frame[j] += frame[i]
+				locs_in_window[j][int(frame[i] / window_search)] += 1
+	mean_frame = mean_frame / n_locs_cluster
+	for i in range(n_clusters):
+		for j in range(21):
+			temp = locs_in_window[i][j] / n_locs_cluster[i]
+			if temp > locs_frac[i]:
+				locs_frac[i] = temp
+	return mean_frame, locs_frac
+
+
+
+def find_true_clusters(mean_frame, locs_frac, n_frame):
+	"""
+	Performs basic frame analysis on clusters.
+	Checks for "sticky events" by analyzing mean frame and the
+	highest fraction of locs in 1/20th interval of acquisition time.
+	Parameters
+	----------
+	mean_frame : np.array
+		Contains mean frame for each cluster
+	locs_frac : np.array
+		Contains highest fraction of locs withing the time window
+	n_frame : int
+		Acquisition time given in frames
+	Returns
+	-------
+	np.array
+		1D array with 1 if a cluster passed the frame analysis, 
+		0 otherwise
+	"""
+
+	true_cluster = _np.zeros(len(mean_frame), dtype=_np.int8)
+	for i in range(len(mean_frame)):
+		cond1 = locs_frac[i] < 0.8
+		cond2 = mean_frame[i] < n_frame * 0.8
+		cond3 = mean_frame[i] > n_frame * 0.2
+		if cond1 and cond2 and cond3:
+			true_cluster[i] = 1
+	return true_cluster
+
+
+
+
+
+
+def find_clusters_picked(dist, radius):
+	"""
+	Counts neighbors, finds local maxima and assigns cluster ids.
+	Used in clustering picked localizations.
+	Parameters
+	----------
+	dist : np.array
+		2D distance matrix
+	radius : float
+		Radius within which neighbors are counted
+	Returns
+	-------
+	np.array
+		Cluster ids for each localization
+	"""
+
+	n_neighbors = count_neighbors_picked(dist, radius)
+	local_max = local_maxima_picked(dist, n_neighbors, radius)
+	cluster_id = assign_to_cluster_picked(dist, local_max, radius)
+	return cluster_id	
+
+
+def postprocess_clusters(cluster_id, min_locs, frame):
+	"""
+	Filters clusters for minimum number of localizations and performs 
+	basic frame analysis to filter out "sticky events".
+	Parameters
+	----------
+	cluster_id : np.array
+		Contains cluster id for each localization (before filtering)
+	min_locs : int
+		Minimum number of localizations in a cluster
+	frame : np.array
+		Frame number for each localization
+	Returns
+	-------
+	np.array
+		Contains cluster id for each localization
+	np.array
+		Specifies if a given cluster passed the frame analysis
+	"""
+	cluster_n_locs = _np.bincount(cluster_id) # number of locs in each cluster
+	cluster_id = check_cluster_size(cluster_n_locs, min_locs, cluster_id)
+	clusters = _np.unique(cluster_id)
+	cluster_id = rename_clusters(cluster_id, clusters)
+	n_clusters = len(clusters)
+	mean_frame, locs_frac = cluster_properties(
+		cluster_id, n_clusters, frame
+	)
+	n_frame = _np.int32(_np.max(frame))
+	true_cluster = find_true_clusters(mean_frame, locs_frac, n_frame)
+	return cluster_id, true_cluster
+
+
+def get_labels(cluster_id, true_cluster):
+	"""
+	Gives labels compatible with scikit-learn style, i.e., -1 means
+	a point (localization) was not assigned to any cluster
+	Parameters
+	----------
+	cluster_id : np.array
+		Contains cluster id for each localization
+	true_cluster : np.array
+		Specifies if a given cluster passed the frame analysis
+	Returns
+	-------
+	np.array
+		Contains label for each localization
+	"""
+
+	labels = -1 * _np.ones(len(cluster_id), dtype=_np.int32)
+	for i in range(len(cluster_id)):
+		if cluster_id[i] != 0 and true_cluster[cluster_id[i]] == 1:
+			labels[i] = cluster_id[i] - 1
+	return labels
+
+
+
+
+def clusterer_picked_2D(x, y, frame, radius, min_locs):
+	"""
+	Clusters picked localizations while storing distance matrix and 
+	returns labels for each localization (2D).
+	Works most efficiently if less than 700 locs are provided.
+	Parameters
+	----------
+	x : np.array
+		x coordinates of picked localizations
+	y : np.array
+		y coordinates of picked localizations
+	frame : np.array
+		Frame number for each localization
+	radius : float
+		Clustering radius
+	min_locs : int
+		Minimum number of localizations in a cluster
+	Returns
+	-------
+	np.array
+		Labels for each localization
+	"""
+
+	xy = _np.stack((x, y)).T
+	dist = _dm(xy, xy) # calculate distance matrix
+	cluster_id = find_clusters_picked(dist, radius)
+	cluster_id, true_cluster = postprocess_clusters(
+		cluster_id, min_locs, frame
+	)
+	return get_labels(cluster_id, true_cluster)
+
+
 
 
 def clusterer_picked_3D(x, y, z, frame, radius_xy, radius_z, min_locs):
@@ -63,22 +406,246 @@ def clusterer_picked_3D(x, y, z, frame, radius_xy, radius_z, min_locs):
 
 
 
+"""
+Don_t forget group_input
+"""
 
 
 
 
 
 
+def clusterer_start(hdf5_file, radius, min_cluster_size, radius_z=0):
+    pl = 130 # pixel length [nm]   # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+    #Read in HDF5-File
+    data_df = pd.read_hdf(hdf5_file, key = 'locs')   
+    #filename = hdf5_file
+    #f1 = h5py.File(filename, 'r')
+    #a_group_key = list(f1.keys())[0]
+    #data = np.array(f1[a_group_key])
+    
+    threshold_radius = float(radius) # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    radius_xy = float(radius)
+    radius_xy_px = radius_xy / pl
+    radius_z_px = radius_z / pl
+    threshold_radius_str = str(radius)
+
+    cluster_size_threshold = min_cluster_size  # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    min_locs = min_cluster_size
+
+   
+    x_coords = data_df['x']
+    y_coords = data_df['y']
+    frame = data_df['frame']
+    x_coords = np.array(data_df['x'])
+    y_coords = np.array(data_df['y'])
+    frame = np.array(data_df['frame'])
+
+    print()
+    print("number of coordinates:", len(x_coords))
+
+    # Check if it is a 2d or 3d dataset
+    try:
+        z_coords = data_df['z']/pl
+    except ValueError:
+        print("2D data recognized.")
+        flag_3D = False
+    else:
+        print("3D data recognized.")
+        if radius_z == 0: # 2D
+            flag_3D = False
+            print("No z-radius specified. Clustering will be performed based on xy coordinates only.")
+        else: #3D
+            flag_3D = True
+            z_coords = data_df['z']/pl
+            z_coords = np.array(data_df['z'])/pl
+            
+            
+            
+    # keep group info as group_input if already present
+    # group column will be overwritten by Cluster ID
+    try: 
+        data_df['group_input'] = data_df['group']
+    except ValueError:
+        print("No group information detected in input file.")
+        flag_group_input = False
+    else:
+        print("Group information detected in input file. \nThis input group column will be kept in the 'group_input' column. \n The new 'group' column describes the clusters.")
+        flag_group_input = True
+    
+            
+    if flag_3D: # 3D
+        labels = clusterer_picked_3D(
+            x_coords,
+            y_coords,
+            z_coords,
+            frame,
+            radius_xy_px,
+            radius_z_px,
+            min_locs,
+        )
+    else:
+        labels = clusterer_picked_2D(
+            x_coords,
+            y_coords,
+            frame,
+            radius_xy_px,
+            min_locs,
+        )
+    print(labels)
+    cluster_df = data_df.copy()
+    cluster_df['group'] = labels
+    cluster_df.drop(cluster_df[cluster_df.group == -1].index, inplace = True)
+    cluster_df.reset_index(drop = True)
+    #temp_locs = temp_locs[temp_locs.group != -1]
+    
+    
+    
+    
+    if not flag_3D:
+        if not flag_group_input:
+            """
+            data = {'frame': data2_frames, 'x': data2_x, 'y': data2_y, 
+                    'photons': data2_photons, 'sx': data2_sx, 'sy': data2_sy, 
+                    'bg': data2_bg, 'lpx': data2_lpx,'lpy': data2_lpy, 
+                    'ellipticity': data2_ellipticity, 'net_gradient': data2_netgradient, 
+                    'group': data2_group}
+        
+            df = pd.DataFrame(data, index=range(len(data2_x)))
+            """
+            cluster_df = cluster_df.astype({'frame': 'u4', 'x': 'f4', 'y': 'f4', 'photons': 'f4', 
+                            'sx': 'f4', 'sy': 'f4', 'bg': 'f4', 'lpx': 'f4','lpy': 'f4',
+                            'ellipticity': 'f4', 'net_gradient': 'f4', 'group': 'u4'})
+            df2 = cluster_df.reindex(columns = ['frame', 'x', 'y', 'photons', 'sx', 'sy', 'bg', 
+                                        'lpx', 'lpy', 'ellipticity', 'net_gradient', 'group'], fill_value=1)
+            '''
+            path = os.path.split(hdf5_file)[0] + "/"
+            filename_old = os.path.split(hdf5_file)[1]
+            filename_new = '%s_ClusterD%s_%d.hdf5' % (filename_old[:-5], threshold_radius_str, cluster_size_threshold)
+            tools.picasso_hdf5(df2, filename_new, filename_old, path)
+            '''
+        else:
+            """
+            data = {'frame': data2_frames, 'x': data2_x, 'y': data2_y, 
+                    'photons': data2_photons, 'sx': data2_sx, 'sy': data2_sy, 
+                    'bg': data2_bg, 'lpx': data2_lpx,'lpy': data2_lpy, 
+                    'ellipticity': data2_ellipticity, 'net_gradient': data2_netgradient, 
+                    'group_input': data2_group_input, 'group': data2_group}
+        
+            df = pd.DataFrame(data, index=range(len(data2_x)))
+            """
+            cluster_df = cluster_df.astype({'frame': 'u4', 'x': 'f4', 'y': 'f4', 'photons': 'f4', 
+                            'sx': 'f4', 'sy': 'f4', 'bg': 'f4', 'lpx': 'f4','lpy': 'f4',
+                            'ellipticity': 'f4', 'net_gradient': 'f4', 'group_input': 'u4', 'group': 'u4'})
+            df2 = cluster_df.reindex(columns = ['frame', 'x', 'y', 'photons', 'sx', 'sy', 'bg', 
+                                        'lpx', 'lpy', 'ellipticity', 'net_gradient', 'group_input', 'group'], fill_value=1)
+            '''
+            path = os.path.split(hdf5_file)[0] + "/"
+            filename_old = os.path.split(hdf5_file)[1]
+            filename_new = '%s_ClusterD%s_%d.hdf5' % (filename_old[:-5], threshold_radius_str, cluster_size_threshold)
+            tools.picasso_hdf5(df2, filename_new, filename_old, path)
+            '''
+        
+    else:
+        if not flag_group_input:
+            """
+            data = {'frame': data2_frames, 'x': data2_x, 'y': data2_y, 'z': data2_z,
+                    'photons': data2_photons, 'sx': data2_sx, 
+                    'sy': data2_sy, 'bg': data2_bg, 'lpx': data2_lpx, 'lpy': data2_lpy,
+                    'ellipticity': data2_ellipticity, 'net_gradient': data2_netgradient,
+                    'd_zcalib': data2_d_zcalib, 'group': data2_group}
+            
+            df = pd.DataFrame(data, index=range(len(data2_x)))
+            """
+            cluster_df = cluster_df.astype({'frame': 'u4', 'x': 'f4', 'y': 'f4', 'z': 'f4', 'photons': 'f4',
+                            'sx': 'f4', 'sy': 'f4', 'bg': 'f4', 'lpx': 'f4','lpy': 'f4',
+                            'ellipticity': 'f4', 'net_gradient': 'f4', 'd_zcalib': 'f4', 'group': 'u4'})
+            df2 = cluster_df.reindex(columns = ['frame', 'x', 'y', 'z', 'photons', 'sx', 
+                                        'sy', 'bg', 'lpx', 'lpy', 'ellipticity', 'net_gradient', 'd_zcalib', 'group'], fill_value=1)
+            '''
+            path = os.path.split(hdf5_file)[0] + "/"
+            filename_old = os.path.split(hdf5_file)[1]
+            filename_new = '%s_ClusterD%s_%d_%s.hdf5' %(filename_old[:-5], threshold_radius_str, cluster_size_threshold, str(radius_z))
+            tools.picasso_hdf5(df2, filename_new, filename_old, path)
+            '''
+        else:
+            """
+            data = {'frame': data2_frames, 'x': data2_x, 'y': data2_y, 'z': data2_z,
+                    'photons': data2_photons, 'sx': data2_sx, 
+                    'sy': data2_sy, 'bg': data2_bg, 'lpx': data2_lpx, 'lpy': data2_lpy,
+                    'ellipticity': data2_ellipticity, 'net_gradient': data2_netgradient,
+                    'd_zcalib': data2_d_zcalib, 'group_input': data2_group_input, 'group': data2_group}
+            
+            df = pd.DataFrame(data, index=range(len(data2_x)))
+            """
+            cluster_df = cluster_df.astype({'frame': 'u4', 'x': 'f4', 'y': 'f4', 'z': 'f4', 'photons': 'f4',
+                            'sx': 'f4', 'sy': 'f4', 'bg': 'f4', 'lpx': 'f4','lpy': 'f4',
+                            'ellipticity': 'f4', 'net_gradient': 'f4', 'd_zcalib': 'f4', 'group_input': 'u4', 'group': 'u4'})
+            df2 = cluster_df.reindex(columns = ['frame', 'x', 'y', 'z', 'photons', 'sx', 
+                                        'sy', 'bg', 'lpx', 'lpy', 'ellipticity', 'net_gradient', 'd_zcalib', 'group_input', 'group'], fill_value=1)
+            '''
+            path = os.path.split(hdf5_file)[0] + "/"
+            filename_old = os.path.split(hdf5_file)[1]
+            filename_new = '%s_ClusterD%s_%d_%s.hdf5' %(filename_old[:-5], threshold_radius_str, cluster_size_threshold, str(radius_z))
+            tools.picasso_hdf5(df2, filename_new, filename_old, path)
+            '''
+    path = os.path.split(hdf5_file)[0] + "/"
+    filename_old = os.path.split(hdf5_file)[1]
+    if not flag_3D:
+        filename_new = '%s_ClusterD%s_%d.hdf5' % (filename_old[:-5], threshold_radius_str, cluster_size_threshold)
+    else:
+        filename_new = '%s_ClusterD%s_%d_%s.hdf5' %(filename_old[:-5], threshold_radius_str, cluster_size_threshold, str(radius_z))
+    tools.picasso_hdf5(df2, filename_new, filename_old, path)
 
 
+    
+    '''
+    if not flag_3D:
+        """
+        data_cl = {'frame': data2_frames, 'x': data2_x, 'y': data2_y, 
+                   'photons': data2_photons, 'sx': data2_sx, 'sy': data2_sy, 
+                   'bg': data2_bg, 'lpx': data2_lpx,'lpy': data2_lpy, 
+                   'ellipticity': data2_ellipticity, 'net_gradient': data2_netgradient, 
+                   'group': data2_group}
+        
+        df = pd.DataFrame(data_cl, index=range(len(data2_x)))
+        """
+        cluster_df = cluster_df.astype({'frame': 'u4', 'x': 'f4', 'y': 'f4', 'photons': 'f4', 
+                        'sx': 'f4', 'sy': 'f4', 'bg': 'f4', 'lpx': 'f4','lpy': 'f4',
+                        'ellipticity': 'f4', 'net_gradient': 'f4', 'group': 'u4'})
+        df2 = cluster_df.reindex(columns = ['frame', 'x', 'y', 'photons', 'sx', 'sy', 'bg', 
+                                            'lpx', 'lpy', 'ellipticity', 'net_gradient', 'group'], fill_value=1)
+            
+        path = os.path.split(hdf5_file)[0] + "/"
+        filename_old = os.path.split(hdf5_file)[1]
+        filename_new = '%s_ClusterD%s_%d.hdf5' % (filename_old[:-5], threshold_radius_str, cluster_size_threshold)
+        tools.picasso_hdf5(df2, filename_new, filename_old, path)
+
+    else:
+        """
+        data_cl = {'frame': data2_frames, 'x': data2_x, 'y': data2_y, 'z': data2_z,
+                   'photons': data2_photons, 'sx': data2_sx, 
+                   'sy': data2_sy, 'bg': data2_bg, 'lpx': data2_lpx, 'lpy': data2_lpy,
+                   'ellipticity': data2_ellipticity, 'net_gradient': data2_netgradient,
+                   'd_zcalib': data2_d_zcalib, 'group': data2_group}
+            
+        df = pd.DataFrame(data_cl, index=range(len(data2_x)))
+        """
+        cluster_df = cluster_df.astype({'frame': 'u4', 'x': 'f4', 'y': 'f4', 'z': 'f4', 'photons': 'f4',
+                        'sx': 'f4', 'sy': 'f4', 'bg': 'f4', 'lpx': 'f4','lpy': 'f4',
+                        'ellipticity': 'f4', 'net_gradient': 'f4', 'd_zcalib': 'f4', 'group': 'u4'})
+        df2 = cluster_df.reindex(columns = ['frame', 'x', 'y', 'z', 'photons', 'sx', 
+                                    'sy', 'bg', 'lpx', 'lpy', 'ellipticity', 'net_gradient', 'd_zcalib', 'group'], fill_value=1)
+            
+        path = os.path.split(hdf5_file)[0] + "/"
+        filename_old = os.path.split(hdf5_file)[1]
+        filename_new = '%s_ClusterD%s_%d_%s.hdf5' %(filename_old[:-5], threshold_radius_str, cluster_size_threshold, str(radius_z))
+        tools.picasso_hdf5(df2, filename_new, filename_old, path)
+    '''
 
 
-
-
-
-
-
-
+"""
 def clusterer_resi(hdf5_file, radius, min_cluster_size, radius_z=0):
 
     #Read in HDF5-File
@@ -100,7 +667,7 @@ def clusterer_resi(hdf5_file, radius, min_cluster_size, radius_z=0):
     print()
     print("number of coordinates:", len(x_coords))
 
-    
+    # Check if it is a 2d or 3d dataset
     try:
         z_coords =  np.ascontiguousarray(data['z'])/pl
     except ValueError:
@@ -116,8 +683,7 @@ def clusterer_resi(hdf5_file, radius, min_cluster_size, radius_z=0):
             #radius_z = float(float(sys.argv[4]))
             z_coords = np.ascontiguousarray(data['z'])/pl
             
-    
-    
+  
     
     # A dummy variable for numba's 'optional' arguments
     dum_arr = np.zeros(1)
@@ -415,13 +981,13 @@ def clusterer_resi(hdf5_file, radius, min_cluster_size, radius_z=0):
     =============================================================================
     '''
     
-    """
+    '''
     This section was restructured. Code to calculate cluster properties and code to
     check if a cluster is a true cluster were arranged differently to implement 
     the kernels more efficiently.
     
     First rename the clusters and write their new indentification into cluster_Nr_data
-    """
+    '''
     
     cluster_Nr_data = d_cluster_Nr_data.copy_to_host() # necessary to calculate unique vector
     unique_clusters = np.unique(cluster_Nr_data)      
@@ -570,13 +1136,13 @@ def clusterer_resi(hdf5_file, radius, min_cluster_size, radius_z=0):
     
     
     
-    """
+    '''
     4) Check clusters for beeing true or false
     a) Repetitive visits over the course of imaging? 
     ->(via cumulative distribution cutoffs -> if there is a jump in the cumulative
        distribution, kick it out)
     
-    """
+    '''
     
     true_cluster = np.zeros(amount_of_clusters,dtype=np.int8)
     
@@ -855,3 +1421,4 @@ def clusterer_resi(hdf5_file, radius, min_cluster_size, radius_z=0):
              new_com_x_cluster=data3_x, new_com_y_cluster=data3_y,
              new_com_z_cluster=data3_z_pl, amountOfNeighbors_data=amountOfNeighbors_data, 
              x_coords=x_coords, y_coords=y_coords, z_coords=z_coords)
+"""
