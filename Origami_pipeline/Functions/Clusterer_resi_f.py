@@ -405,39 +405,112 @@ def clusterer_picked_3D(x, y, z, frame, radius_xy, radius_z, min_locs):
 
 
 
+def save_locs_in_cluster(cluster_df, hdf5_file, radius_xy, min_locs, flag_3D, flag_group_input, radius_z = 0):
+    '''
+    Saves the localizations that were assigned to a cluster into a new
+    Picasso hdf5 file. 
 
-"""
-Don_t forget group_input
-"""
+    Parameters
+    ----------
+    cluster_df : dataframe
+        contains the localizations including the group column assigning them 
+        to a cluster.
+    hdf5_file : string
+        filenmae of the original file. Used for new filename.
+    radius_xy : float/int
+        xy-radius used clustering. Used for new filename.
+    radius_z : float/int
+        z-radius used clustering. Used for new filename.
+    min_locs : int
+        Minimal number of locs a cluster needed to have. Used for new filename.
+    flag_3D : bool
+        True if 3D dataset.
+    flag_group_input : bool
+        True if original dataset already had a group column which is now saved
+        as a column named group_input
+    '''
+  
+    if not flag_3D:
+        if not flag_group_input:
 
+            cluster_df = cluster_df.astype({'frame': 'u4', 'x': 'f4', 'y': 'f4', 'photons': 'f4', 
+                            'sx': 'f4', 'sy': 'f4', 'bg': 'f4', 'lpx': 'f4','lpy': 'f4',
+                            'ellipticity': 'f4', 'net_gradient': 'f4', 'group': 'u4'})
+            df2 = cluster_df.reindex(columns = ['frame', 'x', 'y', 'photons', 'sx', 'sy', 'bg', 
+                                        'lpx', 'lpy', 'ellipticity', 'net_gradient', 'group'], fill_value=1)
+           
+        else:
 
+            cluster_df = cluster_df.astype({'frame': 'u4', 'x': 'f4', 'y': 'f4', 'photons': 'f4', 
+                            'sx': 'f4', 'sy': 'f4', 'bg': 'f4', 'lpx': 'f4','lpy': 'f4',
+                            'ellipticity': 'f4', 'net_gradient': 'f4', 'group_input': 'u4', 'group': 'u4'})
+            df2 = cluster_df.reindex(columns = ['frame', 'x', 'y', 'photons', 'sx', 'sy', 'bg', 
+                                        'lpx', 'lpy', 'ellipticity', 'net_gradient', 'group_input', 'group'], fill_value=1)
 
+        
+    else:
+        if not flag_group_input:
 
+            cluster_df = cluster_df.astype({'frame': 'u4', 'x': 'f4', 'y': 'f4', 'z': 'f4', 'photons': 'f4',
+                            'sx': 'f4', 'sy': 'f4', 'bg': 'f4', 'lpx': 'f4','lpy': 'f4',
+                            'ellipticity': 'f4', 'net_gradient': 'f4', 'd_zcalib': 'f4', 'group': 'u4'})
+            df2 = cluster_df.reindex(columns = ['frame', 'x', 'y', 'z', 'photons', 'sx', 
+                                        'sy', 'bg', 'lpx', 'lpy', 'ellipticity', 'net_gradient', 'd_zcalib', 'group'], fill_value=1)
 
+        else:
 
-def clusterer_start(hdf5_file, radius, min_cluster_size, radius_z=0):
-    pl = 130 # pixel length [nm]   # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+            cluster_df = cluster_df.astype({'frame': 'u4', 'x': 'f4', 'y': 'f4', 'z': 'f4', 'photons': 'f4',
+                            'sx': 'f4', 'sy': 'f4', 'bg': 'f4', 'lpx': 'f4','lpy': 'f4',
+                            'ellipticity': 'f4', 'net_gradient': 'f4', 'd_zcalib': 'f4', 'group_input': 'u4', 'group': 'u4'})
+            df2 = cluster_df.reindex(columns = ['frame', 'x', 'y', 'z', 'photons', 'sx', 
+                                        'sy', 'bg', 'lpx', 'lpy', 'ellipticity', 'net_gradient', 'd_zcalib', 'group_input', 'group'], fill_value=1)
 
-    #Read in HDF5-File
-    data_df = pd.read_hdf(hdf5_file, key = 'locs')   
-    #filename = hdf5_file
-    #f1 = h5py.File(filename, 'r')
-    #a_group_key = list(f1.keys())[0]
-    #data = np.array(f1[a_group_key])
+    path = os.path.split(hdf5_file)[0] + "/"
+    filename_old = os.path.split(hdf5_file)[1]
+    if not flag_3D:
+        filename_new = '%s_ClusterD%s_%d.hdf5' % (filename_old[:-5], str(radius_xy), min_locs)
+    else:
+        filename_new = '%s_ClusterD%s_%d_%s.hdf5' %(filename_old[:-5], str(radius_xy), min_locs, str(radius_z))
+    tools.picasso_hdf5(df2, filename_new, filename_old, path)
     
-    threshold_radius = float(radius) # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    radius_xy = float(radius)
-    radius_xy_px = radius_xy / pl
-    radius_z_px = radius_z / pl
-    threshold_radius_str = str(radius)
+    print(type(radius_xy), type(radius_z), type(min_locs))
 
-    cluster_size_threshold = min_cluster_size  # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    min_locs = min_cluster_size
 
-   
-    x_coords = data_df['x']
-    y_coords = data_df['y']
-    frame = data_df['frame']
+
+
+
+
+def clusterer_start(hdf5_file, radius_xy, min_locs, px_size, radius_z):
+    '''
+    
+
+    Parameters
+    ----------
+    hdf5_file : TYPE
+        DESCRIPTION.
+    radius_xy : TYPE
+        DESCRIPTION.
+    min_locs : TYPE
+        DESCRIPTION.
+    px_size : TYPE
+        DESCRIPTION.
+    radius_z : TYPE
+        DESCRIPTION.
+
+    Returns
+    -------
+    None.
+
+    '''
+
+    # Read in HDF5-File
+    data_df = pd.read_hdf(hdf5_file, key = 'locs')   
+
+    # Convert radii from nm to pixel
+    radius_xy_px = radius_xy / px_size
+    radius_z_px = radius_z / px_size
+
+
     x_coords = np.array(data_df['x'])
     y_coords = np.array(data_df['y'])
     frame = np.array(data_df['frame'])
@@ -447,7 +520,7 @@ def clusterer_start(hdf5_file, radius, min_cluster_size, radius_z=0):
 
     # Check if it is a 2d or 3d dataset
     try:
-        z_coords = data_df['z']/pl
+        z_coords = data_df['z']/px_size
     except ValueError:
         print("2D data recognized.")
         flag_3D = False
@@ -458,8 +531,7 @@ def clusterer_start(hdf5_file, radius, min_cluster_size, radius_z=0):
             print("No z-radius specified. Clustering will be performed based on xy coordinates only.")
         else: #3D
             flag_3D = True
-            z_coords = data_df['z']/pl
-            z_coords = np.array(data_df['z'])/pl
+            z_coords = np.array(data_df['z'])/px_size
             
             
             
@@ -474,7 +546,8 @@ def clusterer_start(hdf5_file, radius, min_cluster_size, radius_z=0):
         print("Group information detected in input file. \nThis input group column will be kept in the 'group_input' column. \n The new 'group' column describes the clusters.")
         flag_group_input = True
     
-            
+    
+    # Start clustering procedure
     if flag_3D: # 3D
         labels = clusterer_picked_3D(
             x_coords,
@@ -493,157 +566,21 @@ def clusterer_start(hdf5_file, radius, min_cluster_size, radius_z=0):
             radius_xy_px,
             min_locs,
         )
-    print(labels)
+    
     cluster_df = data_df.copy()
     cluster_df['group'] = labels
     cluster_df.drop(cluster_df[cluster_df.group == -1].index, inplace = True)
     cluster_df.reset_index(drop = True)
     #temp_locs = temp_locs[temp_locs.group != -1]
     
-    
-    
-    
-    if not flag_3D:
-        if not flag_group_input:
-            """
-            data = {'frame': data2_frames, 'x': data2_x, 'y': data2_y, 
-                    'photons': data2_photons, 'sx': data2_sx, 'sy': data2_sy, 
-                    'bg': data2_bg, 'lpx': data2_lpx,'lpy': data2_lpy, 
-                    'ellipticity': data2_ellipticity, 'net_gradient': data2_netgradient, 
-                    'group': data2_group}
-        
-            df = pd.DataFrame(data, index=range(len(data2_x)))
-            """
-            cluster_df = cluster_df.astype({'frame': 'u4', 'x': 'f4', 'y': 'f4', 'photons': 'f4', 
-                            'sx': 'f4', 'sy': 'f4', 'bg': 'f4', 'lpx': 'f4','lpy': 'f4',
-                            'ellipticity': 'f4', 'net_gradient': 'f4', 'group': 'u4'})
-            df2 = cluster_df.reindex(columns = ['frame', 'x', 'y', 'photons', 'sx', 'sy', 'bg', 
-                                        'lpx', 'lpy', 'ellipticity', 'net_gradient', 'group'], fill_value=1)
-            '''
-            path = os.path.split(hdf5_file)[0] + "/"
-            filename_old = os.path.split(hdf5_file)[1]
-            filename_new = '%s_ClusterD%s_%d.hdf5' % (filename_old[:-5], threshold_radius_str, cluster_size_threshold)
-            tools.picasso_hdf5(df2, filename_new, filename_old, path)
-            '''
-        else:
-            """
-            data = {'frame': data2_frames, 'x': data2_x, 'y': data2_y, 
-                    'photons': data2_photons, 'sx': data2_sx, 'sy': data2_sy, 
-                    'bg': data2_bg, 'lpx': data2_lpx,'lpy': data2_lpy, 
-                    'ellipticity': data2_ellipticity, 'net_gradient': data2_netgradient, 
-                    'group_input': data2_group_input, 'group': data2_group}
-        
-            df = pd.DataFrame(data, index=range(len(data2_x)))
-            """
-            cluster_df = cluster_df.astype({'frame': 'u4', 'x': 'f4', 'y': 'f4', 'photons': 'f4', 
-                            'sx': 'f4', 'sy': 'f4', 'bg': 'f4', 'lpx': 'f4','lpy': 'f4',
-                            'ellipticity': 'f4', 'net_gradient': 'f4', 'group_input': 'u4', 'group': 'u4'})
-            df2 = cluster_df.reindex(columns = ['frame', 'x', 'y', 'photons', 'sx', 'sy', 'bg', 
-                                        'lpx', 'lpy', 'ellipticity', 'net_gradient', 'group_input', 'group'], fill_value=1)
-            '''
-            path = os.path.split(hdf5_file)[0] + "/"
-            filename_old = os.path.split(hdf5_file)[1]
-            filename_new = '%s_ClusterD%s_%d.hdf5' % (filename_old[:-5], threshold_radius_str, cluster_size_threshold)
-            tools.picasso_hdf5(df2, filename_new, filename_old, path)
-            '''
-        
+    if flag_3D:
+        save_locs_in_cluster(cluster_df, hdf5_file, radius_xy, min_locs, flag_3D, flag_group_input, radius_z)
     else:
-        if not flag_group_input:
-            """
-            data = {'frame': data2_frames, 'x': data2_x, 'y': data2_y, 'z': data2_z,
-                    'photons': data2_photons, 'sx': data2_sx, 
-                    'sy': data2_sy, 'bg': data2_bg, 'lpx': data2_lpx, 'lpy': data2_lpy,
-                    'ellipticity': data2_ellipticity, 'net_gradient': data2_netgradient,
-                    'd_zcalib': data2_d_zcalib, 'group': data2_group}
-            
-            df = pd.DataFrame(data, index=range(len(data2_x)))
-            """
-            cluster_df = cluster_df.astype({'frame': 'u4', 'x': 'f4', 'y': 'f4', 'z': 'f4', 'photons': 'f4',
-                            'sx': 'f4', 'sy': 'f4', 'bg': 'f4', 'lpx': 'f4','lpy': 'f4',
-                            'ellipticity': 'f4', 'net_gradient': 'f4', 'd_zcalib': 'f4', 'group': 'u4'})
-            df2 = cluster_df.reindex(columns = ['frame', 'x', 'y', 'z', 'photons', 'sx', 
-                                        'sy', 'bg', 'lpx', 'lpy', 'ellipticity', 'net_gradient', 'd_zcalib', 'group'], fill_value=1)
-            '''
-            path = os.path.split(hdf5_file)[0] + "/"
-            filename_old = os.path.split(hdf5_file)[1]
-            filename_new = '%s_ClusterD%s_%d_%s.hdf5' %(filename_old[:-5], threshold_radius_str, cluster_size_threshold, str(radius_z))
-            tools.picasso_hdf5(df2, filename_new, filename_old, path)
-            '''
-        else:
-            """
-            data = {'frame': data2_frames, 'x': data2_x, 'y': data2_y, 'z': data2_z,
-                    'photons': data2_photons, 'sx': data2_sx, 
-                    'sy': data2_sy, 'bg': data2_bg, 'lpx': data2_lpx, 'lpy': data2_lpy,
-                    'ellipticity': data2_ellipticity, 'net_gradient': data2_netgradient,
-                    'd_zcalib': data2_d_zcalib, 'group_input': data2_group_input, 'group': data2_group}
-            
-            df = pd.DataFrame(data, index=range(len(data2_x)))
-            """
-            cluster_df = cluster_df.astype({'frame': 'u4', 'x': 'f4', 'y': 'f4', 'z': 'f4', 'photons': 'f4',
-                            'sx': 'f4', 'sy': 'f4', 'bg': 'f4', 'lpx': 'f4','lpy': 'f4',
-                            'ellipticity': 'f4', 'net_gradient': 'f4', 'd_zcalib': 'f4', 'group_input': 'u4', 'group': 'u4'})
-            df2 = cluster_df.reindex(columns = ['frame', 'x', 'y', 'z', 'photons', 'sx', 
-                                        'sy', 'bg', 'lpx', 'lpy', 'ellipticity', 'net_gradient', 'd_zcalib', 'group_input', 'group'], fill_value=1)
-            '''
-            path = os.path.split(hdf5_file)[0] + "/"
-            filename_old = os.path.split(hdf5_file)[1]
-            filename_new = '%s_ClusterD%s_%d_%s.hdf5' %(filename_old[:-5], threshold_radius_str, cluster_size_threshold, str(radius_z))
-            tools.picasso_hdf5(df2, filename_new, filename_old, path)
-            '''
-    path = os.path.split(hdf5_file)[0] + "/"
-    filename_old = os.path.split(hdf5_file)[1]
-    if not flag_3D:
-        filename_new = '%s_ClusterD%s_%d.hdf5' % (filename_old[:-5], threshold_radius_str, cluster_size_threshold)
-    else:
-        filename_new = '%s_ClusterD%s_%d_%s.hdf5' %(filename_old[:-5], threshold_radius_str, cluster_size_threshold, str(radius_z))
-    tools.picasso_hdf5(df2, filename_new, filename_old, path)
-
+        save_locs_in_cluster(cluster_df, hdf5_file, radius_xy, min_locs, flag_3D, flag_group_input)
 
     
-    '''
-    if not flag_3D:
-        """
-        data_cl = {'frame': data2_frames, 'x': data2_x, 'y': data2_y, 
-                   'photons': data2_photons, 'sx': data2_sx, 'sy': data2_sy, 
-                   'bg': data2_bg, 'lpx': data2_lpx,'lpy': data2_lpy, 
-                   'ellipticity': data2_ellipticity, 'net_gradient': data2_netgradient, 
-                   'group': data2_group}
-        
-        df = pd.DataFrame(data_cl, index=range(len(data2_x)))
-        """
-        cluster_df = cluster_df.astype({'frame': 'u4', 'x': 'f4', 'y': 'f4', 'photons': 'f4', 
-                        'sx': 'f4', 'sy': 'f4', 'bg': 'f4', 'lpx': 'f4','lpy': 'f4',
-                        'ellipticity': 'f4', 'net_gradient': 'f4', 'group': 'u4'})
-        df2 = cluster_df.reindex(columns = ['frame', 'x', 'y', 'photons', 'sx', 'sy', 'bg', 
-                                            'lpx', 'lpy', 'ellipticity', 'net_gradient', 'group'], fill_value=1)
-            
-        path = os.path.split(hdf5_file)[0] + "/"
-        filename_old = os.path.split(hdf5_file)[1]
-        filename_new = '%s_ClusterD%s_%d.hdf5' % (filename_old[:-5], threshold_radius_str, cluster_size_threshold)
-        tools.picasso_hdf5(df2, filename_new, filename_old, path)
-
-    else:
-        """
-        data_cl = {'frame': data2_frames, 'x': data2_x, 'y': data2_y, 'z': data2_z,
-                   'photons': data2_photons, 'sx': data2_sx, 
-                   'sy': data2_sy, 'bg': data2_bg, 'lpx': data2_lpx, 'lpy': data2_lpy,
-                   'ellipticity': data2_ellipticity, 'net_gradient': data2_netgradient,
-                   'd_zcalib': data2_d_zcalib, 'group': data2_group}
-            
-        df = pd.DataFrame(data_cl, index=range(len(data2_x)))
-        """
-        cluster_df = cluster_df.astype({'frame': 'u4', 'x': 'f4', 'y': 'f4', 'z': 'f4', 'photons': 'f4',
-                        'sx': 'f4', 'sy': 'f4', 'bg': 'f4', 'lpx': 'f4','lpy': 'f4',
-                        'ellipticity': 'f4', 'net_gradient': 'f4', 'd_zcalib': 'f4', 'group': 'u4'})
-        df2 = cluster_df.reindex(columns = ['frame', 'x', 'y', 'z', 'photons', 'sx', 
-                                    'sy', 'bg', 'lpx', 'lpy', 'ellipticity', 'net_gradient', 'd_zcalib', 'group'], fill_value=1)
-            
-        path = os.path.split(hdf5_file)[0] + "/"
-        filename_old = os.path.split(hdf5_file)[1]
-        filename_new = '%s_ClusterD%s_%d_%s.hdf5' %(filename_old[:-5], threshold_radius_str, cluster_size_threshold, str(radius_z))
-        tools.picasso_hdf5(df2, filename_new, filename_old, path)
-    '''
-
+    
+  
 
 """
 def clusterer_resi(hdf5_file, radius, min_cluster_size, radius_z=0):
