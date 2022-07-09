@@ -419,8 +419,6 @@ def save_locs_in_cluster(cluster_df, hdf5_file, radius_xy, min_locs, flag_3D, fl
         filenmae of the original file. Used for new filename.
     radius_xy : float/int
         xy-radius used clustering. Used for new filename.
-    radius_z : float/int
-        z-radius used clustering. Used for new filename.
     min_locs : int
         Minimal number of locs a cluster needed to have. Used for new filename.
     flag_3D : bool
@@ -428,6 +426,8 @@ def save_locs_in_cluster(cluster_df, hdf5_file, radius_xy, min_locs, flag_3D, fl
     flag_group_input : bool
         True if original dataset already had a group column which is now saved
         as a column named group_input
+    radius_z : float/int
+        z-radius used clustering. Used for new filename.
     '''
   
     if not flag_3D:
@@ -473,8 +473,8 @@ def save_locs_in_cluster(cluster_df, hdf5_file, radius_xy, min_locs, flag_3D, fl
         filename_new = '%s_ClusterD%s_%d_%s.hdf5' %(filename_old[:-5], str(radius_xy), min_locs, str(radius_z))
     tools.picasso_hdf5(df2, filename_new, filename_old, path)
     
-    print(type(radius_xy), type(radius_z), type(min_locs))
-
+    
+    
 
 def wtd_sed_sums(group, x, lpx):
     '''
@@ -555,6 +555,57 @@ def RESI_locs(grouped, flag_3D):
         return x_av_wtd, y_av_wtd, z_av_wtd, group_size, sed_xy
     else:
         return x_av_wtd, y_av_wtd, group_size, sed_xy
+
+def save_RESI_locs(group_means, hdf5_file, radius_xy, min_locs, flag_3D, radius_z = 0):
+    '''
+    Saves the RESI localizations and their respective standard error of the
+    means in a new Picasso hdf5 file.
+    Picasso Render can render every RESI localizations with a Gaussian blur
+    with sigma being the standard error of the mean
+
+    Parameters
+    ----------
+    group_means : dataframe
+        contains the RESI localizations and their weighted standard errors of 
+        the mean. All other columns contain the mean values taken over the 
+        DNA-PAINT localizations belonging to this RESI loccalizations cluster.
+    hdf5_file : string
+        filenmae of the original file. Used for new filename.
+    radius_xy : float/int
+        xy-radius used clustering. Used for new filename.
+    min_locs : int
+        Minimal number of locs a cluster needed to have. Used for new filename.
+    flag_3D : bool
+        True if 3D dataset.
+    radius_z : float/int
+        z-radius used clustering. Used for new filename.
+    '''    
+
+    if not flag_3D:
+
+        group_means = group_means.astype({'frame': 'u4', 'x': 'f4', 'y': 'f4', 
+                        'photons': 'f4', 'sx': 'f4', 'sy': 'f4',
+                        'bg': 'f4', 'lpx': 'f4','lpy': 'f4',
+                        'group': 'u4', 'n': 'u4'})
+        df3 = group_means.reindex(columns = ['frame', 'x', 'y', 'photons', 'sx', 'sy', 'bg', 'lpx', 'lpy', 'group', 'n'], fill_value=1)
+
+    else:
+
+        group_means = group_means.astype({'frame': 'u4', 'x': 'f4', 'y': 'f4', 'z': 'f4', 
+                        'photons': 'f4', 'sx': 'f4', 'sy': 'f4',
+                        'bg': 'f4', 'lpx': 'f4','lpy': 'f4', 'lpz': 'f4',
+                        'group': 'u4', 'n': 'u4'})
+        df3 = group_means.reindex(columns = ['frame', 'x', 'y', 'z', 'photons', 'sx', 'sy', 'bg', 'lpx', 'lpy', 'lpz', 'group', 'n'], fill_value=1)
+
+
+    path = os.path.split(hdf5_file)[0] + "/"
+    filename_old = os.path.split(hdf5_file)[1]
+    if not flag_3D:
+        filename_new = '%s_resi_%s_%d.hdf5' % (filename_old[:-5], str(radius_xy), min_locs)
+    else:
+        filename_new = '%s_resi_%s_%d_%s.hdf5' %(filename_old[:-5], str(radius_xy), min_locs, str(radius_z))
+    tools.picasso_hdf5(df3, filename_new, filename_old, path)
+
 
 
 
@@ -659,6 +710,8 @@ def clusterer_start(hdf5_file, radius_xy, min_locs, px_size, radius_z):
 
 
 
+
+    # Calculate RESI localizations and the standard error of the mean
     grouped = cluster_df.groupby("group")
     if flag_3D:
         x_av_wtd, y_av_wtd, z_av_wtd, group_size, sed_xy = RESI_locs(grouped, flag_3D)
@@ -666,9 +719,53 @@ def clusterer_start(hdf5_file, radius_xy, min_locs, px_size, radius_z):
         x_av_wtd, y_av_wtd, group_size, sed_xy = RESI_locs(grouped, flag_3D)
     
 
-    
+    # Mean value for each column in cluster_df dataframe on a per-group basis  
     group_means = grouped.mean()
 
+    # In the averaged dataframe replace the coordinate columns and the 
+    # lpx/lpy/lpz columns with the weighted mean and the (weighted) standard
+    # error of the mean respectively
+    group_means['x'] = x_av_wtd
+    group_means['y'] = y_av_wtd
+    if flag_3D:
+        group_means['z'] = z_av_wtd
+    # Saving the standard error of the mean in the localization precision columns
+    # in the Picasso hdf5 allows Picasso Render to display a gaussian blur around
+    # each RESI localization that corresponds to the standard error of the mean.
+    group_means['lpx'] = sed_xy
+    group_means['lpy'] = sed_xy
+    if flag_3D:
+        # Approximate the uncertainty in z as two times the xy standard error
+        # of the mean.
+        # Note that Picasso Render does not take the lpz column as input 
+        # but calculates lpz on its own from sed_xy in the same way.
+        group_means['lpz'] = 2 * sed_xy
+    # Save group ID of origami, not of clusters in origami in the group column
+    group_means['group'] = group_means['group_input']
+    # Number of locs per cluster
+    group_means['n'] = group_size
+
+
+    #group_means['group'] = np.full(shape = len(group_means), fill_value = np.mean(np.array(data_df['group']))) 
+    
+    # Get rid of columns we don't need
+    group_means = group_means.drop(columns=['ellipticity', 'net_gradient', 'd_zcalib', 'group_input'])
+
+    if flag_3D:
+        save_RESI_locs(group_means, hdf5_file, radius_xy, min_locs, flag_3D, radius_z = 0)
+    else:
+        save_RESI_locs(group_means, hdf5_file, radius_xy, min_locs, flag_3D)
+
+
+    '''
+    try:
+        os.mkdir(os.path.split(hdf5_file)[0] + '/AdditionalOutputs')
+    except OSError:
+        print ("AdditionalOutputs folder already exists")
+    '''
+    
+    print('group keys', group_means.keys())
+    '''
     data3_frames = group_means['frame'].values.tolist()
     data3_x = x_av_wtd.values.tolist()
     data3_y = y_av_wtd.values.tolist()
@@ -686,53 +783,14 @@ def clusterer_start(hdf5_file, radius_xy, min_locs, px_size, radius_z):
         data3_lpz = 2*sed_xy
     data3_group = np.full(shape = len(data3_lpy), fill_value = np.mean(np.array(data['group']))) # group of origami, not of clusters in origami
     data3_n = group_size.values.tolist()
-    
+    '''
     '''
     Generating hdf5 file for picasso render
     '''
-
-    try:
-        os.mkdir(os.path.split(filename)[0] + '/AdditionalOutputs')
-    except OSError:
-        print ("transf_overview folder already exists")
-
-    if not flag_3D:
-        data = {'frame': data3_frames, 'x': data3_x, 'y': data3_y, 
-                'photons': data3_photons, 'sx': data3_sx, 'sy': data3_sy, 
-                'bg': data3_bg, 'lpx': data3_lpx,'lpy': data3_lpy, 
-                'group': data3_group, 'n': data3_n}
-        
-        df = pd.DataFrame(data, index=range(len(data3_x)))
-        df = df.astype({'frame': 'u4', 'x': 'f4', 'y': 'f4', 
-                        'photons': 'f4', 'sx': 'f4', 'sy': 'f4',
-                        'bg': 'f4', 'lpx': 'f4','lpy': 'f4',
-                        'group': 'u4', 'n': 'u4'})
-        df3 = df.reindex(columns = ['frame', 'x', 'y', 'photons', 'sx', 'sy', 'bg', 'lpx', 'lpy', 'group', 'n'], fill_value=1)
-
-        path = os.path.split(filename)[0] + "/"
-        filename_old = os.path.split(filename)[1]
-        filename_new = '%s_resi_%s_%d.hdf5' % (filename_old[:-5], threshold_radius_str, cluster_size_threshold)
-        tools.picasso_hdf5(df3, filename_new, filename_old, path)
-
-    else:
-        data = {'frame': data3_frames, 'x': data3_x, 'y': data3_y, 'z': data3_z,
-                'photons': data3_photons, 'sx': data3_sx, 'sy': data3_sy, 
-                'bg': data3_bg, 'lpx': data3_lpx,'lpy': data3_lpy, 'lpz': data3_lpz,
-                'group': data3_group, 'n': data3_n}
-        
-        df = pd.DataFrame(data, index=range(len(data3_x)))
-        df = df.astype({'frame': 'u4', 'x': 'f4', 'y': 'f4', 'z': 'f4', 
-                        'photons': 'f4', 'sx': 'f4', 'sy': 'f4',
-                        'bg': 'f4', 'lpx': 'f4','lpy': 'f4', 'lpz': 'f4',
-                        'group': 'u4', 'n': 'u4'})
-        df3 = df.reindex(columns = ['frame', 'x', 'y', 'z', 'photons', 'sx', 'sy', 'bg', 'lpx', 'lpy', 'lpz', 'group', 'n'], fill_value=1)
-
-        path = os.path.split(filename)[0] + "/"
-        filename_old = os.path.split(filename)[1]
-        filename_new = '%s_resi_%s_%d_%s.hdf5' %(filename_old[:-5], threshold_radius_str, cluster_size_threshold, str(radius_z))
-        tools.picasso_hdf5(df3, filename_new, filename_old, path)
+    
 
 
+    """
     '''
     Save Shapiro results to csv file
     '''
@@ -758,7 +816,7 @@ def clusterer_start(hdf5_file, radius_xy, min_locs, px_size, radius_z):
              new_com_z_cluster=data3_z_pl, amountOfNeighbors_data=amountOfNeighbors_data, 
              x_coords=x_coords, y_coords=y_coords, z_coords=z_coords)
 
-  
+    """
 
 """
 def clusterer_resi(hdf5_file, radius, min_cluster_size, radius_z=0):
