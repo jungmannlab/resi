@@ -256,6 +256,18 @@ def apply_eucl_transf_f(folder_path, ch1_files, ch3_files, px_size):
             ch3_fulltable['x'] = ch3_fulltable['x']/px_size # convert to px
             ch3_fulltable['y'] = ch3_fulltable['y']/px_size   
             
+            
+            
+            if not flag_3D:
+                ch3_fulltable = ch3_fulltable.astype({'frame': 'u4', 'x': 'f4', 'y': 'f4', 'photons': 'f4', 
+                                'sx': 'f4', 'sy': 'f4', 'bg': 'f4', 'lpx': 'f4','lpy': 'f4',
+                                'ellipticity': 'f4', 'net_gradient': 'f4', 'group': 'u4'})
+            else:
+                ch3_fulltable = ch3_fulltable.astype({'frame': 'u4', 'x': 'f4', 'y': 'f4', 'z': 'f4', 'photons': 'f4',
+                                'sx': 'f4', 'sy': 'f4', 'bg': 'f4', 'lpx': 'f4','lpy': 'f4',
+                                'ellipticity': 'f4', 'net_gradient': 'f4', 'd_zcalib': 'f4', 'group': 'u4'})
+
+            
             filename3_old = os.path.split(file3)[1]
             filename3_aligned = filename3_old[:-5] + "_aligned.hdf5"
             tools.picasso_hdf5(df=ch3_fulltable, 
