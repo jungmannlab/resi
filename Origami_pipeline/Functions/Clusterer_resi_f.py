@@ -4,8 +4,9 @@
 @author: Susanne Reinhardt & Rafal Kowalewski based on the algorithm
 by Thomas Schlichthaerle
 
-Description!!!!!!!!!!            Clustering, Resi locs, 
-
+Clusters DNA-PAINT localizations and calculates the RESI localization for each
+cluster. Results are saved in Picasso hdf5 files (_ ClusterD...hdf5 and. 
+_resi...hdf5 respectively)
 """
 
 
@@ -476,7 +477,7 @@ def save_locs_in_cluster(cluster_df, hdf5_file, radius_xy, min_locs, flag_3D, fl
     
     
 
-def wtd_sed_sums(group, x, lpx):
+def wtd_sem_sums(group, x, lpx):
     '''
     Calculates the sums in the formula for the weighted standard error of the mean.
 
@@ -528,9 +529,6 @@ def RESI_locs(grouped, flag_3D):
 
     '''
 
-
-    
-
     # RESI localization: Weighted mean of the DNA-PAINT localizations in each
     # detected cluster. 
     # Weights for x and y average: the inverse squared localization precision.
@@ -547,14 +545,15 @@ def RESI_locs(grouped, flag_3D):
 
     
     # Weighted standard error of the mean for each RESI localization.
-    sed_x = np.sqrt(grouped.apply(wtd_sed_sums, "x", "lpx")/(group_size - 1))
-    sed_y = np.sqrt(grouped.apply(wtd_sed_sums, "y", "lpy")/(group_size - 1))
-    sed_xy = np.mean([sed_x, sed_y], axis = 0)
+    sem_x = np.sqrt(grouped.apply(wtd_sem_sums, "x", "lpx")/(group_size - 1))
+    sem_y = np.sqrt(grouped.apply(wtd_sem_sums, "y", "lpy")/(group_size - 1))
+    sem_xy = np.mean([sem_x, sem_y], axis = 0)
     
     if flag_3D:
-        return x_av_wtd, y_av_wtd, z_av_wtd, group_size, sed_xy
+        return x_av_wtd, y_av_wtd, z_av_wtd, group_size, sem_xy
     else:
-        return x_av_wtd, y_av_wtd, group_size, sed_xy
+        return x_av_wtd, y_av_wtd, group_size, sem_xy
+
 
 
 
@@ -617,25 +616,39 @@ def save_RESI_locs(group_means, hdf5_file, radius_xy, min_locs, flag_3D, radius_
 
 def clusterer_start(hdf5_file, radius_xy, min_locs, px_size, radius_z):
     '''
-    
+    Loads and clusters a Picasso hdf5 file. Assignes an ID to each localization
+    describing to which cluster it belongs. An ID of -1 one corresponds to 
+    localizations that were not assigned to a cluster. All other localizations
+    are saved in a new Picasso hdf5 file with their cluster ID saved in the 
+    'group column' such that Picasso Render uses different colors for the 
+    groups.
+
+    For each cluster the center position is calculated as weighted mean: "RESI 
+    localization". 
+    In x and y direction 1/lpx^2 and 1/lpy^2 are used as weights respectively.
+    In z direction DNA-PAINT localizations do not have a localizations precision,
+    thus a normal mean value without weights is calculated for z.
+    In addition the weighted standard error of the mean (sem) is calculated for 
+    x and y directionz. The average of the x and y sem is saved in the lpx and 
+    lpy columns of a new Picasso hdf5 file containing the RESI localizations.
+    Saving the sem in the lpx and lpy columns allows Picasso to render the
+    RESI locs with a gaussian blur with sigma = sem.
+    The respective value in z is approximated as 2 times the average
+    standard error of the mean and saved in a new column called lpz.
+
 
     Parameters
     ----------
-    hdf5_file : TYPE
-        DESCRIPTION.
-    radius_xy : TYPE
-        DESCRIPTION.
-    min_locs : TYPE
-        DESCRIPTION.
-    px_size : TYPE
-        DESCRIPTION.
-    radius_z : TYPE
-        DESCRIPTION.
-
-    Returns
-    -------
-    None.
-
+    hdf5_file : string
+        Path and filename to the hdf5 file to be clusterd.
+    radius_xy : float
+        Clustering radius in x and y directions.
+    min_locs : int
+        Minimum number of localizations in a cluster.
+    px_size : int
+        Pixel size in nm.
+    radius_z : float
+        Clustering radius in z direction.
     '''
 
     # Read in HDF5-File
@@ -646,17 +659,18 @@ def clusterer_start(hdf5_file, radius_xy, min_locs, px_size, radius_z):
     radius_z_px = radius_z / px_size
 
 
-    x_coords = np.array(data_df['x'])
-    y_coords = np.array(data_df['y'])
+    x_coords = np.array(data_df['x']) # input is in pixel
+    y_coords = np.array(data_df['y']) # input is in pixel
     frame = np.array(data_df['frame'])
 
     print()
-    print("number of coordinates:", len(x_coords))
+    print("File to be clustered next:", hdf5_file)
+    print("Number of coordinates:", len(x_coords))
 
     # Check if it is a 2d or 3d dataset
     try:
-        z_coords = data_df['z']/px_size
-    except ValueError:
+        z_coords = data_df['z']/px_size  
+    except KeyError:
         print("2D data recognized.")
         flag_3D = False
     else:
@@ -666,16 +680,15 @@ def clusterer_start(hdf5_file, radius_xy, min_locs, px_size, radius_z):
             print("No z-radius specified. Clustering will be performed based on xy coordinates only.")
         else: #3D
             flag_3D = True
-            z_coords = np.array(data_df['z'])/px_size
+            z_coords = np.array(data_df['z'])/px_size # input is in nm, now converted to pix
             
             
             
-    # keep group info as group_input if already present
-    # group column will be overwritten by Cluster ID
+    # keep group info as group_input if already present in input data
+    # group column will be later overwritten by Cluster ID
     try: 
         data_df['group_input'] = data_df['group']
     except ValueError:
-        print("No group information detected in input file.")
         flag_group_input = False
     else:
         print("Group information detected in input file. \nThis input group column will be kept in the 'group_input' column. \n The new 'group' column describes the clusters.")
@@ -703,12 +716,14 @@ def clusterer_start(hdf5_file, radius_xy, min_locs, px_size, radius_z):
         )
     
     cluster_df = data_df.copy()
+    # Add group identifier (labels) to the dataframe
     cluster_df['group'] = labels
+    # Remove localizations that were not assigned to a cluster: group = -1
     cluster_df.drop(cluster_df[cluster_df.group == -1].index, inplace = True)
     cluster_df.reset_index(drop = True)
-    #temp_locs = temp_locs[temp_locs.group != -1]
     
-    
+    # Save locs that were assigned to a cluster with their group ID in a new 
+    # Picasso hdf5 file. 
     if flag_3D:
         save_locs_in_cluster(cluster_df, hdf5_file, radius_xy, min_locs, flag_3D, flag_group_input, radius_z)
     else:
@@ -720,9 +735,9 @@ def clusterer_start(hdf5_file, radius_xy, min_locs, px_size, radius_z):
     # Calculate RESI localizations and the standard error of the mean
     grouped = cluster_df.groupby("group")
     if flag_3D:
-        x_av_wtd, y_av_wtd, z_av_wtd, group_size, sed_xy = RESI_locs(grouped, flag_3D)
+        x_av_wtd, y_av_wtd, z_av_wtd, group_size, sem_xy = RESI_locs(grouped, flag_3D)
     else:
-        x_av_wtd, y_av_wtd, group_size, sed_xy = RESI_locs(grouped, flag_3D)
+        x_av_wtd, y_av_wtd, group_size, sem_xy = RESI_locs(grouped, flag_3D)
     
 
     # Mean value for each column in cluster_df dataframe on a per-group basis  
@@ -736,62 +751,30 @@ def clusterer_start(hdf5_file, radius_xy, min_locs, px_size, radius_z):
     if flag_3D:
         group_means['z'] = z_av_wtd
     # Saving the standard error of the mean in the localization precision columns
-    # in the Picasso hdf5 allows Picasso Render to display a gaussian blur around
-    # each RESI localization that corresponds to the standard error of the mean.
-    group_means['lpx'] = sed_xy
-    group_means['lpy'] = sed_xy
+    # in a Picasso hdf5 allows Picasso Render to display a gaussian blur around
+    # each RESI localization with sigma = standard error of the mean.
+    group_means['lpx'] = sem_xy
+    group_means['lpy'] = sem_xy
     if flag_3D:
         # Approximate the uncertainty in z as two times the xy standard error
         # of the mean.
         # Note that Picasso Render does not take the lpz column as input 
-        # but calculates lpz on its own from sed_xy in the same way.
-        group_means['lpz'] = 2 * sed_xy
+        # but calculates lpz on its own from sem_xy in the same way.
+        group_means['lpz'] = 2 * sem_xy
     # Save group ID of origami, not of clusters in origami in the group column
     group_means['group'] = group_means['group_input']
     # Number of locs per cluster
     group_means['n'] = group_size
 
 
-    #group_means['group'] = np.full(shape = len(group_means), fill_value = np.mean(np.array(data_df['group']))) 
-    
-    # Get rid of columns we don't need
-    group_means = group_means.drop(columns=['ellipticity', 'net_gradient', 'd_zcalib', 'group_input'])
-
     if flag_3D:
+        # Get rid of columns we don't need
+        group_means = group_means.drop(columns=['ellipticity', 'net_gradient', 'd_zcalib', 'group_input'])
+        
         save_RESI_locs(group_means, hdf5_file, radius_xy, min_locs, flag_3D, radius_z)
     else:
+        # Get rid of columns we don't need
+        group_means = group_means.drop(columns=['ellipticity', 'net_gradient', 'group_input'])
+        
         save_RESI_locs(group_means, hdf5_file, radius_xy, min_locs, flag_3D)
 
-
-    '''
-    try:
-        os.mkdir(os.path.split(hdf5_file)[0] + '/AdditionalOutputs')
-    except OSError:
-        print ("AdditionalOutputs folder already exists")
-    '''
-    
-    print('group keys', group_means.keys())
-    
-    
-    
-   
-
-"""
-
-
-    
-    '''
-    Save npz with arrays used for postprocessing
-    '''
-    if not flag_3D:
-        np.savez('%s_varsD%s_%d' %(filename[:-5], threshold_radius_str, cluster_size_threshold),
-             data2_x=data2_x,data2_y=data2_y, data2_frames=data2_frames, data2_group=data2_group,
-             new_com_x_cluster=data3_x, new_com_y_cluster=data3_y,
-             amountOfNeighbors_data=amountOfNeighbors_data, x_coords=x_coords, y_coords=y_coords) 
-    else:
-        np.savez('%s_varsD%s_%d_%s' %(filename[:-5], threshold_radius_str, cluster_size_threshold, str(radius_z)),
-             data2_x=data2_x,data2_y=data2_y, data2_z=data2_z, data2_frames=data2_frames, data2_group=data2_group,
-             new_com_x_cluster=data3_x, new_com_y_cluster=data3_y,
-             new_com_z_cluster=data3_z_pl, amountOfNeighbors_data=amountOfNeighbors_data, 
-             x_coords=x_coords, y_coords=y_coords, z_coords=z_coords)
-"""

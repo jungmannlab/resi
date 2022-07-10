@@ -20,8 +20,8 @@ User Input
 Specify the filepath as well as the filename of the hdf5 file. 
 '''
 
-path = r"W:\users\reinhardt\z.software\Git\RESI\RESI\Origami_pipeline\TestData"
-filename = r"R1_filter_apicked.hdf5"
+path = r"W:\users\reinhardt\z.software\Git\RESI\RESI\Origami_pipeline\2d_test_data_RRO_1bp"
+filename = r"R1_apicked.hdf5"
 
 
 

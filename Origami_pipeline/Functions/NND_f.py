@@ -1,8 +1,15 @@
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Sat Jul  9 12:28:46 2022
+@author: Susanne Reinhardt & Rafal Kowalewski
 
-@author: reinhardt Rafal
+Calculates nearest neighbor distances within datasets and between both
+imaging rounds. Results are saved as csv in a subfolder called called 
+'AdditionalOutputs'.
+For the crossNND distance between imaging rounds, the coordinates of the respective
+partner in the other dataset are saved as additional columns in the _resi..hdf5 
+files as well as their distance. This file is then called _resi.._info.hdf5
+
 """
 import numpy as _np
 import numpy as np
@@ -21,7 +28,7 @@ def nn_analysis(
     same_channel, 
 ):
     '''
-    
+    Searches the nearest neighbor of dataset 2 coordinates in dataset 1.
 
     Parameters
     ----------
@@ -64,25 +71,24 @@ def nn_analysis(
         model = NN(n_neighbors=nn_count)
     model.fit(input1)
     nnd, indices = model.kneighbors(input2)
-    print('indices', indices)
+
     if same_channel:
         nnd = nnd[:, 1:] # ignore the zero distance
-        # Get indices for first NND partners
+        
+        # Get indices for first NND partners (if same+channel = True the first 
+        # column corresponds to the distance measured to itself)
         nn_indices = [sublist[1] for sublist in indices]
+        
     else:
+        # Get indices for first NND partners
         nn_indices = [sublist[0] for sublist in indices]
-    #print('nn_indices', nn_indices)
-    #print('input2', input2)
-    print('input1', input1)
-    print('input2', input2)
-    print('nn_indices', nn_indices)
+
     nn_partner = np.array([input1[nn_indices[i]] for i in range(len(input2))])
-    print('nn_partner', nn_partner)
     
     return nnd, nn_indices, nn_partner
 
 
-def nearest_neighbor(protein1, file_resi1, protein2, file_resi2, px_size):
+def nearest_neighbor(channel1_name, file_resi1, channel2_name, file_resi2, px_size):
     '''
     Initiates nearest neighbor calculations betweend two datasets than can be
     equal or different.
@@ -92,34 +98,19 @@ def nearest_neighbor(protein1, file_resi1, protein2, file_resi2, px_size):
 
     Parameters
     ----------
-    protein1 : TYPE
-        DESCRIPTION.
-    file_resi1 : TYPE
-        DESCRIPTION.
-    protein2 : TYPE
-        DESCRIPTION.
-    file_resi2 : TYPE
-        DESCRIPTION.
-    px_size : TYPE
-        DESCRIPTION.
-
-    Returns
-    -------
-    None.
+    channel1_name : string
+        Name of channel 1.
+    file_resi1 : string
+        Path and filename of the hdf5 file containing the channel 1 RESI locs.
+    channel2_name : string
+        Name of channel 2.
+    file_resi2 : string
+        Path and filename of the hdf5 file containing the channel 2 RESI locs.
+    px_size : ing
+        Pixel size in nm..
 
     '''
-    """
-    
-    Parameters
-    ----------
-    channel1 : int
-        Channel to calculate nearest neighbors distances
-    channel2 : int
-        Second channel to calculate nearest neighbor distances
-    """
 
-    'Load from Resi.hdf5 not form npz'
-    'Flag if same channel or not'
 
 
     # NND within channel or crossNND betwen channels?
@@ -155,8 +146,7 @@ def nearest_neighbor(protein1, file_resi1, protein2, file_resi2, px_size):
     else: # same channel
         x2 = x1
         y2 = y1
-        if flag_3D_1:
-            z2 = z1
+        z2 = z1
         
         
     flag_3D = flag_3D_1
@@ -187,9 +177,9 @@ def nearest_neighbor(protein1, file_resi1, protein2, file_resi2, px_size):
     
     # save nn distances as csv
     if same_channel:
-        np.savetxt('%s_nn_%s.csv' %(fname[:-5], protein1), nnd)
+        np.savetxt('%s_nn_%s.csv' %(fname[:-5], channel1_name), nnd)
     else:
-        np.savetxt('%s_nn_%s_to_%s.csv' %(fname[:-5], protein1, protein2), nnd)
+        np.savetxt('%s_nn_%s_to_%s.csv' %(fname[:-5], channel1_name, channel2_name), nnd)
         
 
     # Extend the content of file_resi_2 with columns containing the coordinates 
@@ -197,8 +187,6 @@ def nearest_neighbor(protein1, file_resi1, protein2, file_resi2, px_size):
     # orientation in the xy plane to each other
 
     if not same_channel:
-        print(df_resi2['x'])
-        #print(nn_indices)
         df_resi2['crossNND_ID'] = nn_indices
         df_resi2['crossNND_x'] = nn_partner[:,0]/px_size # Back from nm to pix
         df_resi2['crossNND_y'] = nn_partner[:,1]/px_size
