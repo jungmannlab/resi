@@ -62,7 +62,7 @@ for i in range(4):
     #             label='uniform '+str(i+1)+'st-NN')
     
     bins = np.arange(0, 1000, 2)
-    ax_knn.hist(distances, bins=bins, alpha=0.3, color=colors[i], edgecolor='black', linewidth=0.1, density=True)
+    ax_knn.hist(distances, bins=bins, alpha=0.5, color=colors[i], edgecolor='black', linewidth=0.1, density=True)
 
     # ax_knn.set_xlim([0, 200])
     # ax_knn.set_ylim([0, 0.022])
