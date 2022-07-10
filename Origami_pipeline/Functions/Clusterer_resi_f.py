@@ -20,7 +20,7 @@ import h5py
 import numpy as _np
 import numpy as np
 import pandas as pd
-import tools
+from Functions import tools
 from scipy.spatial import distance_matrix as _dm
 
 @_njit 
@@ -583,21 +583,24 @@ def save_RESI_locs(group_means, hdf5_file, radius_xy, min_locs, flag_3D, radius_
     radius_z : float/int
         z-radius used clustering. Used for new filename.
     '''    
-
+    
+    
     if not flag_3D:
-
+        
         group_means = group_means.astype({'frame': 'u4', 'x': 'f4', 'y': 'f4', 
                         'photons': 'f4', 'sx': 'f4', 'sy': 'f4',
                         'bg': 'f4', 'lpx': 'f4','lpy': 'f4',
                         'group': 'u4', 'n': 'u4'})
+        
         df3 = group_means.reindex(columns = ['frame', 'x', 'y', 'photons', 'sx', 'sy', 'bg', 'lpx', 'lpy', 'group', 'n'], fill_value=1)
 
     else:
-
+        
         group_means = group_means.astype({'frame': 'u4', 'x': 'f4', 'y': 'f4', 'z': 'f4', 
                         'photons': 'f4', 'sx': 'f4', 'sy': 'f4',
                         'bg': 'f4', 'lpx': 'f4','lpy': 'f4', 'lpz': 'f4',
                         'group': 'u4', 'n': 'u4'})
+        
         df3 = group_means.reindex(columns = ['frame', 'x', 'y', 'z', 'photons', 'sx', 'sy', 'bg', 'lpx', 'lpy', 'lpz', 'group', 'n'], fill_value=1)
 
 

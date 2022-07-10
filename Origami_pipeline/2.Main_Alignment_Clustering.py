@@ -20,7 +20,7 @@ User Input
 px_size = 130
 
 '''Path to the folder containing Origami hdf5 files''' 
-path = r"W:\users\reinhardt\z.software\Git\RESI\RESI\Origami_pipeline\TestData"
+path = r"W:\users\reinhardt\z.software\Git\RESI\RESI\Origami_pipeline\Testdata"
 
 
 '''Filename of round 1 and round 2. This part of the filename must be common 
@@ -60,6 +60,7 @@ import itertools
 from Functions.find_eucl_transf_f import find_eucl_transf_f
 from Functions.apply_eucl_transf_f import apply_eucl_transf_f
 from Functions.Clusterer_resi_f import clusterer_start
+from Functions.NND_f import nearest_neighbor
 #from MainFunctions.Cluster_PostProcessing_new_f import postprocessing
 #from MainFunctions.Cluster_PostProcessing_new_f import postprocessing_cross
 
@@ -171,7 +172,8 @@ def Clusterer_check(path, radius, min_cluster_size, filename_base, i):
                     npz_file = file[:-5] + "_varsD" + str(radius) + "_" + str(min_cluster_size) + "_" + str(radius_z) + ".npz"
                 if os.path.isfile(npz_file) != True: 
                     # Run the SMLM Clusterer and calculate RESI locs
-                    clusterer_start(file, radius, min_cluster_size, radius_z)
+                    clusterer_start(file, radius, min_cluster_size, px_size, radius_z)
+                
 
                
 '''Clusterer'''
@@ -188,24 +190,24 @@ for i in range(len(data)):
 
 '''Postprocessing'''
 '''============================================================================'''
-"""
+
 for protein_info in data:
     protein = protein_info[0]
     radius = protein_info[2]
     min_cluster_size = protein_info[3]
     filename_base = protein_info[1]
     
-    #print(glob.glob(os.path.join(path, "*.npz")))
-    for file_npz in glob.glob(os.path.join(path, "*.npz")):
-        if filename_base in file_npz:
-
-            postprocess_hNN_file = os.path.split(file_npz)[0] + "/AdditionalOutputs/" + os.path.split(file_npz)[1] + "_higher_Neighbors_" + protein + ".csv"
-            if os.path.isfile(postprocess_hNN_file) != True:
     
-                postprocessing(protein, file_npz, colocalization_radius)
+    RESI_filename_extension = "_resi_"+str(radius)+"_"+str(min_cluster_size)
+    for file_resi in glob.glob(os.path.join(path, "*.hdf5")): # searches all hdf5 files
+       if filename_base in file_resi and RESI_filename_extension in file_resi and 'info.' not in file_resi: #!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+           postprocess_hNN_file = os.path.split(file_resi)[0] + "/AdditionalOutputs/" + os.path.split(file_resi)[1] + "_higher_Neighbors_" + protein + ".csv"
+           if os.path.isfile(postprocess_hNN_file) != True:
+               nearest_neighbor(protein, file_resi, protein, file_resi, px_size)
 
 
-# cross correlation
+
+# cross NND
 if len(data) > 1:
     for pair in itertools.combinations(data,2): # pair = all combinations of proteins, each combination stored as a tuple of two elements in the data list
 
@@ -219,25 +221,18 @@ if len(data) > 1:
         min_cluster_size2 = pair[1][3]
         filename_base2 = pair[1][1]
         
-        for file_npz1 in glob.glob(os.path.join(path, "*.npz")):
-            if filename_base1 in file_npz1 and "_varsD"+str(radius1)+"_"+str(min_cluster_size1) in file_npz1: # data 1 is from filename_base1 and the corresponding data2 file will be searched automatically
-                file_npz2 = file_npz1.replace(filename_base1, filename_base2)
-                file_npz2 = file_npz2.replace("_varsD"+str(radius1)+"_"+str(min_cluster_size1), "_aligned_varsD"+str(radius2)+"_"+str(min_cluster_size2))
-                #print("npz 1", file_npz1)
-                #print("npz 2", file_npz2)
-                
-                resi_file1 = file_npz1.replace("varsD", "resi_")
-                resi_file1 = resi_file1.replace("npz", "hdf5")
-                #print("resi file1", resi_file1)
-                resi_file2 = file_npz2.replace("varsD", "resi_")
-                resi_file2 = resi_file2.replace("npz", "hdf5")
+        # data 1 is from filename_base1 and the corresponding data2 file will be searched automatically
+        RESI_filename_extension1 = "_resi_"+str(radius1)+"_"+str(min_cluster_size1)
+        for file_resi1 in glob.glob(os.path.join(path, "*.hdf5")): # searches all hdf5 files
+           if filename_base1 in file_resi1 and RESI_filename_extension1 in file_resi1 and 'info.' not in file_resi1: #!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+                file_resi2 = file_resi1.replace(filename_base1, filename_base2)
+                file_resi2 = file_resi2.replace("_resi_"+str(radius1)+"_"+str(min_cluster_size1), "_aligned_resi_"+str(radius2)+"_"+str(min_cluster_size2))
         
-                postprocess_hNN_file_ex_1 = os.path.split(file_npz1)[0] + "/AdditionalOutputs/" + os.path.split(file_npz1)[1] + "_higher_Neighbors_" + protein1 + "_to_" + protein2 + ".csv"
-                postprocess_hNN_file_ex_2 = os.path.split(file_npz2)[0] + "/AdditionalOutputs/" + os.path.split(file_npz2)[1] + "_higher_Neighbors_" + protein2 + "_to_" + protein1 + ".csv"
+                postprocess_hNN_file_ex_1 = os.path.split(file_resi1)[0] + "/AdditionalOutputs/" + os.path.split(file_resi1)[1] + "_higher_Neighbors_" + protein1 + "_to_" + protein2 + ".csv"
+                postprocess_hNN_file_ex_2 = os.path.split(file_resi2)[0] + "/AdditionalOutputs/" + os.path.split(file_resi2)[1] + "_higher_Neighbors_" + protein2 + "_to_" + protein1 + ".csv"
 
                 if os.path.isfile(postprocess_hNN_file_ex_1) != True or os.path.isfile(postprocess_hNN_file_ex_2) != True:
-                    postprocessing_cross(protein1, protein2, file_npz1, file_npz2, resi_file1, resi_file2, colocalization_radius)
+                    nearest_neighbor(protein1, file_resi1, protein2, file_resi2, px_size)
+                    nearest_neighbor(protein2, file_resi2, protein1, file_resi1, px_size)
                     
-    
-print("postprocessing finished")
-"""
