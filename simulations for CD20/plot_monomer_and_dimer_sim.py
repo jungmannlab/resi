@@ -33,7 +33,7 @@ _distances_exp, _indices_exp = nbrs.kneighbors(pos_exp) # get distances and indi
 # plot 1st NN and compared to only monomers distribution
 # =============================================================================
     
-color = '#4059AD'
+color='#2D7DD2'
 fig_1stnn, ax_1stnn = plt.subplots(figsize=(5, 5))
 
 data_dim_and_mon = np.load('data_dim_and_mon.npy')
@@ -47,17 +47,17 @@ ax_1stnn.plot(bin_centers_dim_and_mon, freq_dim_and_mon, color=color,
 freq_mon, bin_centers_mon = data_mon[1, :], data_mon[0, :]
 
 ax_1stnn.plot(bin_centers_mon, freq_mon, color=color, 
-              linewidth=2,label='uniform '+str(1)+'st-NN', linestyle='dashed', alpha=.6)
+              linewidth=2,label='uniform '+str(1)+'st-NN', linestyle='dotted', alpha=.6)
     
-bins = np.arange(0, 1000, 2)
-ax_1stnn.hist(_distances_exp[:, 1], bins=bins, alpha=0.7, color=color, 
-             edgecolor='black', linewidth=0.1, density=True)
+bins = np.arange(0, 1000, 4)
+ax_1stnn.hist(_distances_exp[:, 1], bins=bins, alpha=0.5, color='#2880C4', 
+              edgecolor='black', linewidth=0.1, density=True)
     
 plt.tight_layout()
     
     
 ax_1stnn.set_xlim([0, 100])
-ax_1stnn.set_ylim([0, 0.022])
+ax_1stnn.set_ylim([0, 0.018])
 
 ax_1stnn.set_xlabel('K-th nearest-neighbour distance (nm)')
 ax_1stnn.set_ylabel('Frequency')
