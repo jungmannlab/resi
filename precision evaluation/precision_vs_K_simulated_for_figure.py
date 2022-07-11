@@ -68,9 +68,9 @@ ax0.set_ylim(-30, 30)
     
 files = ['simulated/simulated_data1200.hdf5']
 
-K_array = np.array([1, 2, 3, 4, 5, 10, 30, 50, 80, 100]) # number of localizations per subset
+K_array = np.array([1, 10, 30, 50, 80, 100]) # number of localizations per subset
 
-fig3, ax3 = plt.subplots(2, 5, figsize=(20, 16)) # size matches len(K_array)
+fig3, ax3 = plt.subplots(2, 3, figsize=(20, 16)) # size matches len(K_array)
 
 iterables = [ax3.reshape(-1), K_array]
 
@@ -96,12 +96,15 @@ for k, (ax, K) in enumerate(zip(*iterables)):
     bins = np.arange(binsmin, binsmax, 0.3)
     
     ax.hist2d(all_locs_x, all_locs_y, bins=bins, cmap='hot')
-    ax.title.set_text('K = {}'.format(K))
-    ax.set_xlabel('x (nm)')
-    ax.set_ylabel('y (nm)')
+    # ax.title.set_text('K = {}'.format(K))
+    # ax.set_xlabel('x (nm)')
+    # ax.set_ylabel('y (nm)')
     ax.set_aspect('equal')
     ax.set_xlim(-20, 20)
     ax.set_ylim(-30, 30)
+    
+    ax.tick_params(left = False, right = False , labelleft = False ,
+                   labelbottom = False, bottom = False)
     
     σ_resi_list = []
     
@@ -156,6 +159,9 @@ print('Number of valid clusters (size > 5 locs) for each K are: ', counter)
 cluster_size_array = np.array(cluster_size_array)
 
 print('Average cluster size: ', cluster_size_array.mean())
+
+ax.tick_params(left = False, right = False , labelleft = False ,
+                labelbottom = False, bottom = False)
 
 # plot results
      
