@@ -81,7 +81,7 @@ err_val_arr = n_subres_frac_arr // err_val + 1
 # =============================================================================
 
 fig0, ax0 = plt.subplots()
-ax0.set_title(str(distribution)+' distribution, err_val = ' + str(err_val))
+# ax0.set_title(str(distribution)+' distribution, err_val = ' + str(err_val))
 extent = [resolution_arr[0], resolution_arr[-1], 
           density_arr[0] * 10**6, density_arr[-1] * 10**6] # convert to μm^2
 plot = ax0.imshow(n_subres_frac_arr, interpolation='None', extent=extent,
@@ -91,6 +91,8 @@ cbar0.set_label('Fraction of molecules closer than resolution limit')
 
 ax0.set_xlabel('Resolution ($nm$)')
 ax0.set_ylabel('Density ($μm^{-2}$)')
+# ax0.tick_params(direction='in')
+
 
 # fig1, ax1 = plt.subplots()
 # ax1.set_title(str(distribution)+' distribution, err_val = ' + str(err_val))
@@ -116,7 +118,11 @@ ax2.plot(density_arr * 10**6, n_subres_frac_arr[:, res_id[3]])
 # ax2.set_title(title)
 ax2.set_xlabel('Density ($μm^{-2}$)')
 ax2.set_ylabel('Fraction of subres molecules')
+ax2.set_xlim(0, 400)
+ax2.tick_params(direction='in')
+
 ax2.plot(density_arr * 10**6, np.ones(len(density_arr)) * err_val, 'k--')
+
 
 # res_id = int(0.1 * len(resolution_arr)) # will give roughly 20 nm res
 ax2.plot(density_arr * 10**6, n_subres_frac_arr[:, res_id[3]])

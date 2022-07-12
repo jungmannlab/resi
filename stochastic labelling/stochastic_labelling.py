@@ -71,7 +71,7 @@ elif d == 3:
                                        np.random.uniform(0, height, N),
                                        np.random.uniform(0, depth, N)]
     
-    ax0.scatter3D(pos[:, 0], pos[:, 1], pos[:, 2])
+    ax0.scatter3D(pos[:, 0], pos[:, 1], pos[:, 2], edgecolor='none')
     ax0.set_xlabel('x (nm)')
     ax0.set_ylabel('y (nm)')
     ax0.set_zlabel('z (nm)')
