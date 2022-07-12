@@ -215,7 +215,8 @@ def amountofNeighbors_ex_kernel(x_com1, y_com1, x_com2, y_com2, amountOfNeighbor
 
 def postprocessing_cross(protein1, protein2, npz_file1, npz_file2, resi_file1, resi_file2, colocalization_radius):
 
-    
+    default_dist = 1000000
+
 
     """load Resi files"""
     f1 = h5py.File(resi_file1, 'r')
@@ -301,7 +302,7 @@ def postprocessing_cross(protein1, protein2, npz_file1, npz_file2, resi_file1, r
     '''
     
     #if filename2.isnumeric() == False:
-    higher_neighbors_kindlin_to_talin = np.zeros((len(x_com2),10),dtype=float) 
+    higher_neighbors_kindlin_to_talin = np.zeros((len(x_com2),10),dtype=float) + default_dist
     crossNND_partner_ID_kindlin_to_talin = np.zeros(len(x_com2),dtype=int)
     crossNND_partner_x_kindlin_to_talin = np.zeros(len(x_com2),dtype=float)
     crossNND_partner_y_kindlin_to_talin = np.zeros(len(x_com2),dtype=float)
@@ -351,7 +352,7 @@ def postprocessing_cross(protein1, protein2, npz_file1, npz_file2, resi_file1, r
     
     #higher_order_nearest_neighbors Talin to Kindlin
 
-    higher_neighbors_talin_to_kindlin = np.zeros((len(x_com1),10),dtype=float) 
+    higher_neighbors_talin_to_kindlin = np.zeros((len(x_com1),10),dtype=float) + default_dist
     crossNND_partner_ID_talin_to_kindlin = np.zeros(len(x_com1),dtype=int)
     crossNND_partner_x_talin_to_kindlin = np.zeros(len(x_com1),dtype=float)
     crossNND_partner_y_talin_to_kindlin = np.zeros(len(x_com1),dtype=float)
@@ -485,8 +486,8 @@ def postprocessing(protein, npz_file1, colocalization_radius):
     
 
     '''Talin calculation'''
-    
-    higher_neighbors_Talin = np.zeros((len(x_com1),10),dtype=float) #this gives you the 10 nearest neighbors
+    default_dist = 1000000
+    higher_neighbors_Talin = np.zeros((len(x_com1),10),dtype=float) + default_dist #this gives you the 10 nearest neighbors
     
     
     d_x_com1 = cuda.to_device(x_com1)
