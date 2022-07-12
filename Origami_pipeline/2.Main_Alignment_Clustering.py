@@ -27,7 +27,7 @@ User Input
 px_size = 130
 
 '''Path to the folder containing Origami hdf5 files''' 
-path = r"W:\users\reinhardt\z.software\Git\RESI\RESI\Origami_pipeline\2d_test_data_RRO_1bp"
+path = r"W:\users\...\2d_test_data_RRO_1bp"
 
 
 '''Filename of round 1 and round 2. This part of the filename must be common 

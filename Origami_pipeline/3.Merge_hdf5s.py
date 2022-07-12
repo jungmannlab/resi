@@ -23,10 +23,10 @@ User Input
 '''
 
 '''Path to the folder containing the hdf5 files to be merged.'''
-path = r"W:\users\reinhardt\z.software\Git\RESI\RESI\Origami_pipeline\3D_test_data_disk_result"
+path = r"W:\users\...\2D_test_data_RRO_1bp"
 
 '''Specify which expressions have to be part of a filename to be integrated into the merged file.'''
-name_parts = ["R3", "resi_7_30_20", "info"]
+name_parts = ["R1", "resi_4_50", "info"]
 
 '''Specify which expressions must NOT be part of a filename to be integrated into the merged file.'''
 '''If running the script several times it happens easily that a previously generated merge file 
@@ -34,7 +34,7 @@ name_parts = ["R3", "resi_7_30_20", "info"]
 not_name_parts = ["merge"] 
 
 '''Name of the merged file'''
-filename_merge = "R3_resi_7_30_20_info_merge.hdf5"
+filename_merge = "R1_resi_4_50_info_merge.hdf5"
 
 
 
