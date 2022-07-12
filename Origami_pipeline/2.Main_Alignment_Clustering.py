@@ -43,8 +43,8 @@ round2_name = "R3"
 
 
 '''Clustering Parameters'''
-radius_xy = 4
-radius_z = 0 # set to 0 for 2d data
+radius_xy = 4 # in nm
+radius_z = 0 # in nm; set to 0 for 2d data
 N_min = 50
 
 
