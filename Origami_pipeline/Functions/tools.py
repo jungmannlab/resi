@@ -1,37 +1,46 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Wed Dec  8 11:47:08 2021
+@author: Luciano A. Masullo, Susanne Reinhardt
 
-@author: Luciano A. Masullo
+Collection of functions used by several scripts.
 """
 
 import numpy as np
-import pandas as pd
 import h5py
-import os
 
 
 
 def angle(p1x, p1y, p2x, p2y):
+    """
+    This function calculates the orientation of two coordinates p1 and p2 with 
+    respect to a horicontal line going through point 1. For this a third point 
+    p3 is defined as p3 = (p1x+1, p1y). Then, the angle between p3, p1 and p2 
+    can be calculated. This calculation is performed for a set of p1 
+    coordinates and a set of p2 coordinates.  
+
+    Parameters
+    ----------
+    p1x : array
+        X coordinates of the first set of points.
+    p1y : array
+        Y coordinates of the first set of points.
+    p2x : array
+        X coordinates of the second set of points.
+    p2y : array
+        Z coordinates of the second set of points.
+
+    Returns
+    -------
+    angle : array
+        The angle between each p1 p2 pair.
+
+    """
     angle = np.zeros(len(p1x))
     for i in range(len(p1x)):
         p1 = np.array([p1x[i], p1y[i]])
         p2 = np.array([p2x[i], p2y[i]])
-        """
-        if p1y[i] > p2y[i]:
-            p3x = p1x[i] + 1
-            p3y = p1y[i]
-            p3 = np.array([p3x, p3y])
-            v0 = p3 - p1
-            v1 = p2 - p1
-        else:
-            p3x = p2x[i] + 1
-            p3y = p2y[i]
-            p3 = np.array([p3x, p3y])
-            v0 = p3 - p2
-            v1 = p2 - p2
-        """
+
         p3x = p1x[i] + 1
         p3y = p1y[i]
         p3 = np.array([p3x, p3y])
@@ -91,121 +100,6 @@ def picasso_hdf5(df, hdf5_fname, hdf5_oldname, path):
     
     print('New Picasso-compatible .hdf5 file and .yaml file successfully created.')
     
-    
-def get_resi_locs(files, K):
-    
-    """
-    input:
-        
-        files: must be a list of strings containing the file names by channel
-        K: number of localizations to be averaged to obtain each resi 
-        localization
-    
-    output: 
-        
-        data: a data frame with the localizations with one extra property, 
-              the 'subset'
-        resi_locs: a data frame with the resi localizations obtained by 
-                   averaging in the subsets
-    """
-    
-    data = {}
-    resi_locs = {}
-    
-    for i, file in enumerate(files):
-        data[str(i)] = pd.read_hdf(file, key='locs') # read each channel (file)
-        data[str(i)].rename(columns={'group': 'cluster_id'}, inplace=True)
-        
-    for key in data.keys():
-                
-        # initalize a list with the 'subset' property
-        subsetslist = [-1]*data[key].shape[0] # -1 is the label for localizations not assigned to any subset
-        data[key]['subset'] = subsetslist
-        
-        cluster_id_set = list(set(list(data[key]['cluster_id'])))
-
-        for _ , cluster_id in enumerate(cluster_id_set):
-            
-            print(cluster_id)
-            
-            cluster = data[key].loc[data[key]['cluster_id'] == cluster_id] # get the table of cluster i   
-            indexes = cluster.index # get the (general) indexes of the localizations in this cluster
-            nlocs = cluster.shape[0] # get the number of localizations in cluster i
-            nsubsets = int(nlocs/K) # get number of subsets, given K
-
-            for j in range(nsubsets):
-                
-                # random choice of size K
-                subsets_id = np.random.choice(indexes, size=K, replace=False) 
-                indexes = [i for i in indexes if i not in subsets_id] # remove already chosen indexes
-                data[key].loc[subsets_id, 'subset'] = j # assign a subset label   
-                
-        grouped_locs = data[key].groupby(['cluster_id', 'subset']) # group localizations by cluster_id and subset
-                                                                
-        resi_locs[key] = grouped_locs.mean().reset_index() # calculate mean by cluster_id and subset and obtain resi data
-    
-    return resi_locs, data
-
-
-def simulate_data(fname, sites, locs_per_site, σ_dnapaint, plot=False):
-    
-    """
-    input:
-            sites: array with the coordinates of the docking sites (in nm)
-            locs_per_site: number of localizations per site
-            σ_dnapaint: DNA-PAINT precision in nm
-    
-    output: 
-            it writes a file with the simulated data
-
-    """
-    
-    cov = [[σ_dnapaint**2, 0], [0, σ_dnapaint**2]] # create covariance matrix
-    locs = locs_per_site # number of localizations per docking site
-    
-    # generate simulated origami data
-    
-    data = np.zeros((sites.shape[0], locs, 2))
-    xlist = []
-    ylist = []
-    clusterlist = []
-    
-    for i, site in enumerate(sites):
-    
-        data[i, :, :] = np.random.multivariate_normal(site, cov, locs) 
-        
-        xlist += list(data[i, :, 0])
-        ylist += list(data[i, :, 1])
-        clusterlist += list(np.array((np.ones(data.shape[1])*i + 1), 
-                                     dtype=int))
-    
-    d = {'x': xlist, 'y': ylist, 'cluster_id': clusterlist}
-    df = pd.DataFrame(d)
-    df.to_hdf(fname, key='locs', mode='w')
-    
-    if plot: # plot whole origami (histogram)
-    
-        import matplotlib.pyplot as plt
-    
-        fig1, ax1 = plt.subplots()
-        ax1.set_xlabel('x (nm)')
-        ax1.set_xlim([-50, 50])
-        ax1.set_ylim([-50, 50])
-        ax1.set_ylabel('y (nm)')
-        
-        bins = np.arange(-50, 50, 0.2)
-        hist, xbins, ybins = np.histogram2d(data[:, :, 0].flatten(), 
-                                            data[:, :, 1].flatten(), 
-                                            bins=bins)
-        extent = [-50, 50, -50, 50]
-        
-        ax1.imshow(hist.T, interpolation='none', origin='lower', 
-                   cmap='hot', 
-                   extent=extent)
-        ax1.set_aspect('equal')
-    
-        
-    return "Simulated data successfully generated"
     
 
 def rigid_transform_3D(A, B):
