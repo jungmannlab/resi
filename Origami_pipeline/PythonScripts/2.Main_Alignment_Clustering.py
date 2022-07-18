@@ -98,7 +98,7 @@ if os.path.isfile(eucl_transf_data) != True:
             raise Exception("The folder containing the alignment picks was not found. Check if it is named 'alignment_picks'.")
 
     ch13_files = glob.glob(os.path.join(path_alignment_picks, "*.hdf5"))
-    ch1_files = sorted(file for file in ch13_files if data[0][1] in file)
+    ch1_files = sorted(file for file in ch13_files if data[0][1] in os.path.split(file)[1])
 
     # get the respective list for the ch3 files. 
     # Instead of extracting it in the same way from the ch13_files list
@@ -128,7 +128,7 @@ else:
 eucl_transf_data = os.path.join(path,"eucl_transf/eucl_transf_data.xlsx")
 if os.path.isfile(eucl_transf_data) == True:
     ch13_files = glob.glob(os.path.join(path, "*.hdf5"))
-    ch1_files = sorted(file for file in ch13_files if data[0][1] in file and "ori" in file and "ClusterD" not in file and "_resi_" not in file)
+    ch1_files = sorted(file for file in ch13_files if data[0][1] in os.path.split(file)[1] and "ori" in os.path.split(file)[1] and "ClusterD" not in os.path.split(file)[1] and "_resi_" not in os.path.split(file)[1])
 
     ch3_files = []
     for ch1_file in ch1_files:
@@ -163,13 +163,13 @@ def Clusterer_check(path, radius, min_cluster_size, filename_base, i):
         # run of this script. Like files containing _resi_
         
         if (
-                filename_base in file and 
-                "picked" in file and
-                "ori" in file and
-                Clusterer_filename_extension not in file and 
-                "ClusterD" not in file and
-                "coupling" not in file and 
-                "_resi_" not in file
+                filename_base in os.path.split(file)[1] and 
+                "picked" in os.path.split(file)[1] and
+                "ori" in os.path.split(file)[1] and
+                Clusterer_filename_extension not in os.path.split(file)[1] and 
+                "ClusterD" not in os.path.split(file)[1] and
+                "coupling" not in os.path.split(file)[1] and 
+                "_resi_" not in os.path.split(file)[1]
             ): 
             
             if (i == 0) or (i == 1 and "_aligned" in file):
@@ -207,10 +207,8 @@ for protein_info in data:
     
     RESI_filename_extension = "_resi_"+str(radius)+"_"+str(min_cluster_size)
     for file_resi in glob.glob(os.path.join(path, "*.hdf5")): # searches all hdf5 files
-       if filename_base in file_resi and RESI_filename_extension in file_resi and 'info.' not in file_resi: #!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-           postprocess_hNN_file = os.path.split(file_resi)[0] + "/AdditionalOutputs/" + os.path.split(file_resi)[1] + "_higher_Neighbors_" + protein + ".csv"
-           if os.path.isfile(postprocess_hNN_file) != True:
-               nearest_neighbor(protein, file_resi, protein, file_resi, px_size)
+       if filename_base in file_resi and RESI_filename_extension in file_resi and 'info.' not in file_resi:
+           nearest_neighbor(protein, file_resi, protein, file_resi, px_size)
 
 
 
@@ -231,15 +229,11 @@ if len(data) > 1:
         # data 1 is from filename_base1 and the corresponding data2 file will be searched automatically
         RESI_filename_extension1 = "_resi_"+str(radius1)+"_"+str(min_cluster_size1)
         for file_resi1 in glob.glob(os.path.join(path, "*.hdf5")): # searches all hdf5 files
-           if filename_base1 in file_resi1 and RESI_filename_extension1 in file_resi1 and 'info.' not in file_resi1: #!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+           if filename_base1 in file_resi1 and RESI_filename_extension1 in file_resi1 and 'info.' not in file_resi1:
 
                 file_resi2 = file_resi1.replace(filename_base1, filename_base2)
                 file_resi2 = file_resi2.replace("_resi_"+str(radius1)+"_"+str(min_cluster_size1), "_aligned_resi_"+str(radius2)+"_"+str(min_cluster_size2))
-        
-                postprocess_hNN_file_ex_1 = os.path.split(file_resi1)[0] + "/AdditionalOutputs/" + os.path.split(file_resi1)[1] + "_higher_Neighbors_" + protein1 + "_to_" + protein2 + ".csv"
-                postprocess_hNN_file_ex_2 = os.path.split(file_resi2)[0] + "/AdditionalOutputs/" + os.path.split(file_resi2)[1] + "_higher_Neighbors_" + protein2 + "_to_" + protein1 + ".csv"
 
-                if os.path.isfile(postprocess_hNN_file_ex_1) != True or os.path.isfile(postprocess_hNN_file_ex_2) != True:
-                    nearest_neighbor(protein1, file_resi1, protein2, file_resi2, px_size)
-                    nearest_neighbor(protein2, file_resi2, protein1, file_resi1, px_size)
+                nearest_neighbor(protein1, file_resi1, protein2, file_resi2, px_size)
+                nearest_neighbor(protein2, file_resi2, protein1, file_resi1, px_size)
                     
