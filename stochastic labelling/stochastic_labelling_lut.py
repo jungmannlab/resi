@@ -23,8 +23,8 @@ d = 2 # dimension of the simulation, d = 2 for 2D case, d = 3 for 3D
 density_arr = np.linspace(1, 1000, 300) * 10**-6 # molecules per nm^2
 σ_dnapaint_arr = np.linspace(1, 20, 100) # nm
 # labelling_rounds = np.arange(1, 10)
-width = 8e3 # width of the simulated area in nm
-height = 8e3 # height of the simulated area in nm
+width = 80e3 # width of the simulated area in nm
+height = 80e3 # height of the simulated area in nm
 distribution = 'uniform'
 
 err_val = 0.10 # admitted frac of molecules closer than the resolution limit

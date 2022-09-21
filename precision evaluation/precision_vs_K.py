@@ -28,8 +28,10 @@ plt.close('all')
 # files = ['test_files/figure3_k_resampling/nodel_R1_etc_ClusterD4_50_picked_multi_picked.hdf5',
 #          'test_files/figure3_k_resampling/nodel_R3_etc_aligned_ClusterD4_50_picked_multi_picked.hdf5']
 
+# sub-nm origami
 files = ['test_files/figure3_k_resampling/R1_ClusterD4_50_merged.hdf5', 
-         'test_files/figure3_k_resampling/R3_ClusterD4_50_merged.hdf5']
+          'test_files/figure3_k_resampling/R3_ClusterD4_50_merged.hdf5']
+
 
 channel_keys = ['0', '1']
 
@@ -37,7 +39,8 @@ pxsize = 130 # nm
 σ_dnapaint = 1.78 # nm
 
 
-K_array = np.array([1, 2, 3, 5, 10, 20, 30, 40, 60, 80, 100]) # number of localizations per subset
+# K_array = np.array([1, 2, 3, 5, 10, 20, 30, 40, 60, 80, 100]) # number of localizations per subset
+K_array = np.array([1]) # number of localizations per subset
 minsize = 5 # minimum number of resi localizations needed to consider the statistics
 σ_resi_mean_array = np.zeros(len(K_array))
 σ_resi_std_array = np.zeros(len(K_array))

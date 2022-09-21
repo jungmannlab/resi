@@ -1,0 +1,229 @@
+Byte Order: <
+Camera: Zyla Artemis
+Data Type: uint16
+File: Z:\users\glueck\cGAS-STING-imaging\20220824_HelaGFPSTING\well6_resting_RESI_GFPNb_R1_200pM_1\well6_resting_RESI_GFPNb_R1_200pM_1_MMStack_Pos0.ome.tif
+Frames: 30000
+Height: 512
+Micro-Manager Acquisiton Comments:
+- 200mW 75 deg 32 mW
+Micro-Manager Metadata:
+  Binning: 2
+  BitDepth: 16
+  COM9-AnswerTimeout: '500.0000'
+  COM9-BaudRate: '9600'
+  COM9-DataBits: '8'
+  COM9-DelayBetweenCharsMs: '0.0000'
+  COM9-Description: Serial port driver (boost:asio)
+  COM9-Handshaking: 'Off'
+  COM9-Name: COM9
+  COM9-Parity: None
+  COM9-StopBits: '1'
+  COM9-Verbose: '1'
+  Camera: Zyla Artemis
+  ChannelIndex: 0
+  Core-AutoFocus: PFS
+  Core-AutoShutter: '1'
+  Core-Camera: Zyla Artemis
+  Core-ChannelGroup: ''
+  Core-Focus: ZDrive
+  Core-Galvo: ''
+  Core-ImageProcessor: ''
+  Core-Initialize: '1'
+  Core-SLM: ''
+  Core-Shutter: Turret1Shutter
+  Core-TimeoutMs: '5000'
+  Core-XYStage: XYStage
+  ElapsedTime-ms: 1560
+  Exposure-ms: 150
+  FileName: well6_resting_RESI_GFPNb_R1_200pM_1_MMStack_Pos0.ome.tif
+  FilterTurret1-Label: 2-TIRF 560
+  FilterTurret1-State: '1'
+  Frame: 0
+  FrameIndex: 0
+  ImageNumber: 0
+  IntermediateMagnification-Magnification: 1.0x
+  LightPath-Label: 2-R100
+  LightPath-State: '1'
+  MicroscopeID-ClosedPosition: '0'
+  MicroscopeID-Description: Demo filter wheel driver
+  MicroscopeID-HubID: ''
+  MicroscopeID-Label: Artemis
+  MicroscopeID-Name: DWheel
+  MicroscopeID-State: '0'
+  Nosepiece-Label: 1-Apo TIRF 100x Oil
+  Nosepiece-State: '0'
+  PFS-DichroicMirrorInserted: 'Yes'
+  PFS-FocusMaintenance: 'Off'
+  PFS-LEDIntensity: '57'
+  PixelSize_um: 0
+  PixelType: GRAY16
+  PositionIndex: 0
+  ROI: 255-255-512-512
+  Slice: 0
+  SliceIndex: 0
+  Turret1Shutter-State: '0'
+  UUID: 2a4de0bd-6a53-4463-9a20-da9f9da13ca1
+  XPositionUm: -9289.800000000001
+  XYStage-Acceleration-AC(ms): '100'
+  XYStage-AxisLetterX: X
+  XYStage-AxisLetterY: Y
+  XYStage-Backlash-B: '0.0040'
+  XYStage-BuildName: STD_XY
+  XYStage-CompileDate: May 03 2019:11:28:11
+  XYStage-Description: ASI XY stage driver adapter
+  XYStage-EnableAdvancedProperties: 'No'
+  XYStage-Error-E(nm): '1000.0000'
+  XYStage-FinishError-PCROS(nm): '2.0000'
+  XYStage-JoyStick Fast Speed: '60'
+  XYStage-JoyStick Reverse: 'Off'
+  XYStage-JoyStick Slow Speed: '5'
+  XYStage-Maximum Speed (Do Not Change): '0.8576'
+  XYStage-MotorOnOff: 'On'
+  XYStage-Name: XYStage
+  XYStage-OnlySendSerialCommandOnChange: 'Yes'
+  XYStage-OverShoot(um): '0.0000'
+  XYStage-Port: COM9
+  XYStage-SerialCommand: ''
+  XYStage-SerialResponse: ''
+  XYStage-Speed-S: '0.5746'
+  XYStage-StepSizeX_um: '0.0100'
+  XYStage-StepSizeY_um: '0.0100'
+  XYStage-TransposeMirrorX: '0'
+  XYStage-TransposeMirrorY: '0'
+  XYStage-VectorMoveX-VE(mm/s): '0.0000'
+  XYStage-VectorMoveY-VE(mm/s): '0.0000'
+  XYStage-Version: 'Version: USB-9.2m '
+  XYStage-Wait_Cycles: '0'
+  YPositionUm: 5385.3
+  ZPositionUm: 3259.42
+  Zyla Artemis-AccumulateCount: '1'
+  Zyla Artemis-AcquisitionWindow: Custom AOI (512x512)
+  Zyla Artemis-AuxiliaryOutSource (TTL I/O): FireAll
+  Zyla Artemis-AuxiliaryOutTwoSource (TTL I/O): ExternalShutterControl
+  Zyla Artemis-Binning: 2x2
+  Zyla Artemis-CameraFirmware: 15.8.12.0
+  Zyla Artemis-CameraID: VSC-20968
+  Zyla Artemis-CameraModel: ZYLA-4.2P-USB3
+  Zyla Artemis-CameraName: Zyla 4.2 USB3
+  Zyla Artemis-CurrentSoftware: 3.13.30034.0
+  Zyla Artemis-Description: SDK3 Device Adapter for sCMOS cameras
+  Zyla Artemis-ElectronicShutteringMode: Rolling
+  Zyla Artemis-Exposure: '150.00'
+  Zyla Artemis-Ext (Exp) Trigger Timeout[ms]: '5000'
+  Zyla Artemis-FanSpeed: 'On'
+  Zyla Artemis-FrameRate: '6.6656'
+  Zyla Artemis-FrameRateLimits: 'Min: 8.02517  Max: 9.99680  Max Sustain: 134.63637'
+  Zyla Artemis-LightScanPlus-AlternatingReadoutDirection: 'Off'
+  Zyla Artemis-LightScanPlus-ExposedPixelHeight: '4167'
+  Zyla Artemis-LightScanPlus-ExternalTriggerDelay [s]: '0.0000'
+  Zyla Artemis-LightScanPlus-LineScanSpeed [lines/sec]: '41666.6667'
+  Zyla Artemis-LightScanPlus-RowReadTime: '0.0000'
+  Zyla Artemis-LightScanPlus-ScanSpeedControlEnable: 'Off'
+  Zyla Artemis-LightScanPlus-SensorReadoutMode: Centre Out Simultaneous
+  Zyla Artemis-Overlap: 'On'
+  Zyla Artemis-PixelEncoding: Mono16
+  Zyla Artemis-PixelReadoutRate: 200 MHz - lowest noise
+  Zyla Artemis-RollingShutterGlobalClear: 'Off'
+  Zyla Artemis-Sensitivity/DynamicRange: 16-bit (low noise & high well capacity)
+  Zyla Artemis-SensorCooling: 'On'
+  Zyla Artemis-SensorTemperature: '0.2700'
+  Zyla Artemis-ShutterOutputMode: Closed
+  Zyla Artemis-ShutterTransferTime [s]: '0.0000'
+  Zyla Artemis-SpuriousNoiseFilter: 'On'
+  Zyla Artemis-StaticBlemishCorrection: 'On'
+  Zyla Artemis-TemperatureControl: '0.00'
+  Zyla Artemis-TemperatureStatus: Not Stabilised
+  Zyla Artemis-TransposeCorrection: '0'
+  Zyla Artemis-TransposeMirrorX: '0'
+  Zyla Artemis-TransposeMirrorY: '0'
+  Zyla Artemis-TransposeXY: '0'
+  Zyla Artemis-TriggerMode: Internal (Recommended for fast acquisitions)
+  completeCoords: null
+  receivedTime: 2022-08-24 12:58:01 +0200
+  userData: null
+Width: 512
+---
+Box Size: 9
+Generated by: Picasso Localize
+Min. Net Gradient: 2000
+Pixelsize: 130
+ROI: null
+Z Calibration:
+  X Coefficients:
+  - -1.6213027469341682e-18
+  - -1.560462310384552e-14
+  - 4.189256345307012e-12
+  - 1.7906165644843003e-09
+  - 9.425908857396191e-06
+  - 0.002254939148790506
+  - 1.0624508179578662
+  Y Coefficients:
+  - -2.252952298155834e-17
+  - 1.47218141687274e-14
+  - 1.4059338671557903e-11
+  - -3.5121995436574154e-10
+  - 6.832048852030119e-06
+  - -0.0027459705104720604
+  - 1.2496930722710893
+Z Calibration Path: W:/users/z.3D_calibration/Artemis/22_04_01-Artemis/561_minus0_5_plus0_5_5nmsteps_1/561_minus0_5_plus0_5_5nmsteps_1_MMStack_Pos0.ome_3d_calib.yaml
+---
+Generated by: Picasso Render
+Last driftfile: Z:/users/glueck/cGAS-STING-imaging/20220824_HelaGFPSTING/well6_resting_RESI_GFPNb_R1_200pM_1/well6_resting_RESI_GFPNb_R1_200pM_1_MMStack_Pos0.ome_locs_220824_164054_drift.txt
+---
+Generated by: Picasso Filter
+bg: null
+d_zcalib: null
+ellipticity: null
+frame: null
+lpx: null
+lpy: null
+net_gradient: null
+photons: null
+sx:
+- 0.35977018962761087
+- 2.509854458251036
+sy:
+- 0.48990402810079825
+- 2.3827523993252564
+x: null
+y: null
+z: null
+---
+Generated by: Picasso Render
+Last driftfile: null
+---
+Generated by: 'Picasso Render : Pick'
+Pick Shape: Rectangle
+Pick Width: 80.0
+---
+Clustering radius xy [cam. px]: 0.09
+Clustering radius z [cam. px]: 0.18
+Generated by: Picasso Render SMLM clusterer 3D
+Min. cluster size: 15
+Number of clusters: 4242
+---
+Generated by: Picasso Render Combine
+Paths to combined files:
+- Z:/users/glueck/cGAS-STING-imaging/20220824_HelaGFPSTING/well6_resting_RESI_GFPNb_R1_200pM_1/well6_resting_RESI_GFPNb_R1_200pM_1_MMStack_Pos0.ome_locs2000_RCC1000_gold_filter25_aligned_apicked_clustered_0.09_15_0.18_cluster_centers.hdf5
+- Z:/users/glueck/cGAS-STING-imaging/20220824_HelaGFPSTING/well6_resting_RESI_GFPNb_R2_200pM_1/well6_resting_RESI_GFPNb_R2_200pM_1_MMStack_Pos0.ome_locs3000_rcc_gold_filter25_aligned_apicked_clustered_0.079_15_0.16_cluster_centers.hdf5
+- Z:/users/glueck/cGAS-STING-imaging/20220824_HelaGFPSTING/well6_resting_RESI_GFPNb_R3_200pM_1/well6_resting_RESI_GFPNb_R3_200pM_1_MMStack_Pos0.ome_locs_rcc1000_gold_filter25_aligned_apicked_clustered_0.079_15_0.16_cluster_centers.hdf5
+- Z:/users/glueck/cGAS-STING-imaging/20220824_HelaGFPSTING/well6_resting_RESI_GFPNb_R4_100pM_1/well6_resting_RESI_GFPNb_R4_100pM_1_MMStack_Pos0.ome_locs_rcc_gold_filter25_apicked_clustered_0.1_20_0.2_cluster_centers.hdf5
+---
+Generated by: Picasso Filter
+bg: null
+ellipticity: null
+frame: null
+group_input: null
+lpx: null
+lpy: null
+lpz: null
+n: null
+net_gradient: null
+photons: null
+sx: null
+sy: null
+x: null
+y: null
+z:
+- 30.950293700141515
+- 154.92337350213774
