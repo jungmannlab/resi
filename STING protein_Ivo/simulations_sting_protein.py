@@ -33,8 +33,6 @@ dx = 10 # in nm
 # width = 40e3 # width of the simulated area in nm
 # height = 40e3 # height of the simulated area in nm
 
-
-
 #TODO: generate replicas of the simulated experiment for statistics
 
 #TODO: double check the out of index error
@@ -295,6 +293,7 @@ ax_knn.set_ylabel('Frequency')
 ax_knn.tick_params(direction='in')
 ax_knn.set_box_aspect(1)
 
+
 # =============================================================================
 # Plot experimental data for comparison
 # =============================================================================
@@ -385,3 +384,4 @@ ax_1stnn.set_xlabel('K-th nearest-neighbour distance (nm)')
 ax_1stnn.set_ylabel('Frequency')
 ax_1stnn.tick_params(direction='in')
 ax_1stnn.set_box_aspect(1)
+

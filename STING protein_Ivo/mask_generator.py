@@ -15,8 +15,12 @@ import scipy.ndimage as ndi
 
 plt.close('all')
 
+# Ivo STING
+
 path = r'well6_resting_RESI/'
 filename = r'All_RESI_centers_noZ_picked.hdf5'
+
+# Susi FA
 
 # path = r'forLuciano/'
 # filename = r'K2_picked_mask_in_resi_7_15.hdf5'
@@ -130,3 +134,9 @@ ax5.set_ylim(y0, y0 + length)
 #TODO: save mask and parameters
 
 np.save('test_mask.npy', mask_final)
+np.save('test_mask_x.npy', xedges)
+np.save('test_mask_y.npy', yedges)
+
+mask_area = mask_final.sum() * mask_resolution**2 
+
+print('Observed density = ', 1e6 * pos_exp.shape[0]/mask_area, 'molecules per μm^2')
