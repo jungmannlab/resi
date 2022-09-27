@@ -14,7 +14,7 @@ import os
 plt.close('all')
 
 # =============================================================================
-# experimental parameters
+# Experimental parameters
 # =============================================================================
 
 # independent parameters
@@ -23,12 +23,24 @@ D = 2 # dimension of the simulation, d = 2 for 2D case, d = 3 for 3D
 mult = 2 # multiplicity of the molecular assembly (e.g. mult = 2 for dimers)
 
 D_dimer = 12 # real dimer distance in nm
-density_d = 154e-6 # molecules per nm^2 (or nm^3)
-density_m = 154e-6 # molecules per nm^2 (or nm^3)
+density_d = 200e-6 # molecules per nm^2 (or nm^3)
+density_m = 200e-6 # molecules per nm^2 (or nm^3)
+
+mask = np.load('test_mask.npy')
+dx = 10 # in nm
 
 σ_label = 7 # nm
-width = 40e3 # width of the simulated area in nm
-height = 40e3 # height of the simulated area in nm
+# width = 40e3 # width of the simulated area in nm
+# height = 40e3 # height of the simulated area in nm
+
+
+
+#TODO: generate replicas of the simulated experiment for statistics
+
+#TODO: double check the out of index error
+width = dx * (mask.shape[0] - 10) # width of the simulated area in nm
+height = dx * (mask.shape[0] - 10) # height of the simulated area in nm
+
 depth = 5e3 # depth of the simulated area in nm
 
 dim_color = '#009FB7'
@@ -50,7 +62,7 @@ N_m = int(density_m * width * height)
 plot_examples = True
 
 # =============================================================================
-# simulate molecules positions and calculate distances
+# Simulate molecules positions and calculate distances
 # =============================================================================
 
 c_pos_dim = np.zeros((N_d, D)) # initialize array of central positions for dimers
@@ -187,6 +199,8 @@ if labelling:
     
 print(pos.shape)
 
+pos = pos + np.array([0, 0]) # ensure positive positions of the simulated molecules
+
 # this plot should output dimers taking into account labelling, molecules with black edge are the ones actually labelled
 ax2.scatter(pos[:, 0], pos[:, 1], facecolors='none', edgecolors='k')
 
@@ -208,25 +222,49 @@ ax3.set_xlim(width/2, width/2 + length_ax3)
 ax3.set_ylim(width/2, width/2 + length_ax3)
 
 # =============================================================================
-# Create and apply mask
+# Apply mask
 # =============================================================================
 
-# create 2D hist (image) from the coordinates of the molecules (pos)
-x0_hist = 20000
-y0_hist = 33000
-length_hist = 12000
-binsize = 20 # in nm
-bins_x = np.arange(x0_hist, x0_hist + length_hist, binsize)
-bins_y = np.arange(y0_hist, y0_hist + length_hist, binsize)
-counts, xedges, yedges, *_ = ax1.hist2d(x, y, bins=[bins_x, bins_y], cmap='hot')
+mask = np.load('test_mask.npy')
+dx = 10 # in nm
+
+pos_rounded = np.around(pos/dx, 0)
+
+x_ind = np.array(pos_rounded[:, 0], dtype=int)
+y_ind = np.array(pos_rounded[:, 1], dtype=int)
+
+i_ind = y_ind
+j_ind = x_ind
+
+index = mask[i_ind, j_ind].astype(bool)
+
+pos_in = pos[index]
+pos_out = pos[index]
+
+pos = pos_in
+
+fig4, ax4 = plt.subplots()
+ax4.set(facecolor='black')
+fig4.suptitle('Monomers + dimers not distinguishable and mask')
+
+ax4.imshow(mask, alpha=0.1, zorder=-1)
+
+ax4.scatter(pos[:, 0], pos[:, 1], facecolors='orange', edgecolors='none', s=4)
+
+ax4.set_xlabel('x (nm)')
+ax4.set_ylabel('y (nm)')
+ax4.set_title('Real density = '+str(int((density_d + density_m)*1e6))+'/$μm^2$')
+ax4.set_box_aspect(1)
+
+length_ax4 = 6000
+# ax4.set_xlim(width/2, width/2 + length_ax4)
+# ax4.set_ylim(width/2, width/2 + length_ax4)
 
 # =============================================================================
 # NN calculation
 # =============================================================================
 
 from sklearn.neighbors import NearestNeighbors
-
-### NN calculation ###
     
 nbrs = NearestNeighbors(n_neighbors=5).fit(pos) # find nearest neighbours
 _distances, _indices = nbrs.kneighbors(pos) # get distances and indices
@@ -244,13 +282,6 @@ for i in range(4):
     freq, bins = np.histogram(distances, bins=200, density=True)
     bin_centers = (bins[:-1] + bins[1:]) / 2
     
-    # if i == 0:
-    
-    #     data_aux = np.zeros((2, len(freq)))
-    #     data_aux[0, :] = bin_centers
-    #     data_aux[1, :] = freq
-    #     np.save('data_only_mon.npy', data_aux)
-
     ax_knn.plot(bin_centers, freq, color=colors[i], linewidth=2, 
                 label='uniform '+str(i+1)+'st-NN')
     
@@ -267,6 +298,8 @@ ax_knn.set_box_aspect(1)
 # =============================================================================
 # Plot experimental data for comparison
 # =============================================================================
+
+#TODO: match experimental and simulated coordinates
 
 path = r'well6_resting_RESI/'
 filename = r'All_RESI_centers_noZ.hdf5'
@@ -296,12 +329,6 @@ for i in range(4):
     
     distances_exp = _distances_exp[:, i+1] # get the first neighbour distances
     
-    # freq, bins = np.histogram(distances, bins=100, density=True)
-    # bin_centers = (bins[:-1] + bins[1:]) / 2
-    
-    # ax_knn.plot(bin_centers, freq, color=colors[i], linewidth=2, 
-    #             label='uniform '+str(i+1)+'st-NN')
-    
     bins = np.arange(0, 1000, 4)
     ax_knn.hist(distances_exp, bins=bins, alpha=0.5, color=colors[i], edgecolor='black', linewidth=0.1, density=True)
 
@@ -314,36 +341,15 @@ for i in range(4):
     ax_knn.set_box_aspect(1)
     
     plt.tight_layout()
-    
-# ax_knn.set_xlim([0, 100])
-# ax_knn.set_ylim([0, 0.022])
 
 ax_knn.set_xlabel('K-th nearest-neighbour distance (nm)')
 ax_knn.set_ylabel('Frequency')
 ax_knn.tick_params(direction='in')
 ax_knn.set_box_aspect(1)
-
-# filename_resi = 'dataset1/well2_LTX_RESI_GFPNb_R1_400pM_2_RESI_higher_Neighbors_data1.csv'
-
-# # filename_resi = 'dataset2/well2_neg_GFPNb_R1_300pM_1_MMStack_Pos4.ome_locs_RCC1000_pick10_aligned_apicked_filter12_varsD9_25.npz_RESI.npz_higher_Neighbors_data1.csv'
-
-# k_nn_resi = pd.read_csv(filename_resi, sep=',',header=None)
-
-# for i in range(4):
     
-#     bins = np.arange(0, 1000, 1)
-#     ax_knn.hist(k_nn_resi[i], bins=bins, alpha=0.7, color=colors[i], edgecolor='black', linewidth=0.1, density=True)
+mask_area = mask.sum() * dx**2 
 
-#     ax_knn.set_xlim([0, 200])
-#     ax_knn.set_ylim([0, 0.022])
-    
-#     ax_knn.set_xlabel('K-th nearest-neighbour distance (nm)')
-#     ax_knn.set_ylabel('Frequency')
-#     ax_knn.tick_params(direction='in')
-#     ax_knn.set_box_aspect(1)
-    
-print('Observed density = ', 1e6 * pos.shape[0]/(width*height), 'molecules per μm^2')
-
+print('Observed density = ', 1e6 * pos.shape[0]/mask_area, 'molecules per μm^2')
 
 # =============================================================================
 # plot 1st NN and compared to only monomers distribution
