@@ -39,7 +39,7 @@ pos_exp = np.array([x, y]).T
 # =============================================================================
 
 # create proper roi
-margin = 500 # in nm
+margin = 50 # in nm
 x0 = x.min() - margin
 y0 = y.min() - margin
 length = np.max((x.max() - x.min(),
@@ -88,8 +88,6 @@ thresh = filters.threshold_otsu(image_blurred)
 # thresh = image_blurred[image_blurred > 0].mean() + 0.8 * image_blurred[image_blurred > 0].std()
 
 mask = image_blurred >= thresh
-
-# mask = mask/np.max(mask)
 
 fig3, ax3 = plt.subplots()
 
