@@ -10,8 +10,27 @@ import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
 import os
+import configparser
+from datetime import datetime
 
 plt.close('all')
+
+# =============================================================================
+# Load paths and choose output filenames
+# =============================================================================
+
+# Ivo STING protein
+# mask_filename = 'All_RESI_centers_noZ_picked_MASK'
+
+# Susi focal adhesions
+mask_filename = 'K2_picked_mask_in_resi_7_15_MASK'
+
+pos_filename = mask_filename + 'simulated_pos'
+nnd_filename = mask_filename + '_nn_distances'
+
+mask = np.load(mask_filename + '.npy')
+xedges = np.load(mask_filename + '_xedges.npy')
+yedges = np.load(mask_filename + '_yedges.npy')
 
 # =============================================================================
 # Experimental parameters
@@ -24,18 +43,12 @@ K = 4 # how many NN are going to be evaluated
 D = 2 # dimension of the simulation, d = 2 for 2D case, d = 3 for 3D
 mult = 2 # multiplicity of the molecular assembly (e.g. mult = 2 for dimers)
 
-D_dimer = 10 # real dimer distance in nm
-density_d = 180e-6 # molecules per nm^2 (or nm^3)
-density_m = 300e-6 # molecules per nm^2 (or nm^3)
+D_dimer = 12 # real dimer distance in nm
+density_d = 600e-6 # molecules per nm^2 (or nm^3)
+density_m = 200e-6 # molecules per nm^2 (or nm^3)
 
-mask = np.load('test_mask.npy')
-xedges = np.load('test_mask_x.npy')
-yedges = np.load('test_mask_y.npy')
-
-dx = 10 # in nm
+dx = xedges[1] - xedges[0] # in nm
 σ_label = 5 # nm
-
-#TODO: generate replicas of the simulated experiment for statistics
 
 width = xedges[-1] - xedges[0]
 height = yedges[-1] - yedges[0]
@@ -58,18 +71,19 @@ p = 0.5
 N_d = int(density_d/2 * width * height) # divided by two because N_d it's the number of centers of dimers
 N_m = int(density_m * width * height)
 
-plot_examples = False
+plot_examples = False # Warning: only use for nsamples = 1, otherwise too many plots
 
 nsamples = 10
 
 sim_nnd = []
+sim_pos = []
+
+# =============================================================================
+# Simulate molecules positions and calculate distances
+# =============================================================================
 
 for s in range(nsamples):
-    
-    # =============================================================================
-    # Simulate molecules positions and calculate distances
-    # =============================================================================
-    
+
     c_pos_dim = np.zeros((N_d, D)) # initialize array of central positions for dimers
     c_pos_mon = np.zeros((N_m, D)) # initialize array of central positions for monomers
     
@@ -163,9 +177,7 @@ for s in range(nsamples):
             ax1.set_xlim(width/2, width/2 + length)
             ax1.set_ylim(width/2, width/2 + length)
             
-    # =============================================================================
-    # Labeling efficiency
-    # =============================================================================
+    ### Labeling efficiency
     
     # flatten the array to get all molecules positions together
     pos_dim = np.concatenate((pos_dim[:, :, 0], pos_dim[:, :, 1]), axis=0) 
@@ -204,7 +216,6 @@ for s in range(nsamples):
             
     pos = pos + np.array([xedges[0], yedges[0]]) # correct positions of the simulated molecules
     
-    
     # discard molecules positions outside the mask area
     pos = pos[pos[:, 0] > xedges[0]]
     pos = pos[pos[:, 1] > yedges[0]]
@@ -227,13 +238,9 @@ for s in range(nsamples):
         ax3.set_title('Real density = '+str(int((density_d + density_m)*1e6))+'/$μm^2$')
         ax3.set_box_aspect(1)
     
-    # =============================================================================
-    # Apply mask
-    # =============================================================================
     
-    mask = np.load('test_mask.npy')
-    dx = 10 # in nm
-    
+    ### Apply mask
+
     # convert to an integer version of pos (in multiples of dx)
     pos_aux = (pos - np.array([xedges[0], yedges[0]]))/dx
     pos_rounded = np.array((np.floor(pos_aux) + np.ceil(pos_aux))/2, dtype=int)
@@ -254,7 +261,10 @@ for s in range(nsamples):
     # take only the molecules inside the mask
     pos = pos_in
     
+    sim_pos.append(pos)
+
     if plot_examples:
+        
         fig4, ax4 = plt.subplots()
         ax4.set(facecolor='black')
         fig4.suptitle('Monomers + dimers not distinguishable and mask')
@@ -269,13 +279,7 @@ for s in range(nsamples):
         ax4.set_title('Real density = '+str(int((density_d + density_m)*1e6))+'/$μm^2$')
         ax4.set_box_aspect(1)
     
-    # length_ax4 = 6000
-    # ax4.set_xlim(width/2, width/2 + length_ax4)
-    # ax4.set_ylim(width/2, width/2 + length_ax4)
-    
-    # =============================================================================
-    # NN calculation of the Kth NN
-    # =============================================================================
+    ### NN calculation of the Kth NN
     
     from sklearn.neighbors import NearestNeighbors
         
@@ -298,10 +302,11 @@ for s in range(nsamples):
         bin_centers = (bins[:-1] + bins[1:]) / 2
         
         if plot_examples:
+            
             ax_knn.plot(bin_centers, freq, color=colors[i], linewidth=2, 
                         label='uniform '+str(i+1)+'st-NN')
         
-        plt.tight_layout()
+            plt.tight_layout()
     
     if plot_examples:
     
@@ -314,123 +319,169 @@ for s in range(nsamples):
         ax_knn.set_box_aspect(1)
     
     sim_nnd.append(_distances)
+ 
+    
+# Calculate observed_density for the simulation 
+mask_area = mask.sum() * dx**2 
+observed_density = 1e6 * pos.shape[0]/mask_area
+print('Observed density = ', observed_density, 'molecules per μm^2')
+
+# colect the rounds of simulated positions
+sim_pos = np.concatenate(sim_pos)
 
 # collect the rounds of simulated distances
 sim_nnd = np.concatenate(sim_nnd)
 
-colors = ['#2880C4', '#97D8C4', '#F4B942', '#363636']
-fig_knn, ax_knn = plt.subplots(figsize=(5, 5))
+### Save the simulated distances
 
-for i in range(K):
-    
-    # plot histogram of nn-distance of the simulation
-        
-    distances = sim_nnd[:, i+1] # get the first neighbour distances
-        
-    freq, bins = np.histogram(distances, bins=200, density=True)
-    bin_centers = (bins[:-1] + bins[1:]) / 2
+np.save(nnd_filename + '.npy', sim_nnd)
 
-    ax_knn.plot(bin_centers, freq, color=colors[i], linewidth=2, 
-                label='uniform '+str(i+1)+'st-NN')
-    
-    plt.tight_layout()
-    
-    ax_knn.set_xlim([0, 100])
-    ax_knn.set_ylim([0, 0.022])
-        
-    ax_knn.set_xlabel('K-th nearest-neighbour distance (nm)')
-    ax_knn.set_ylabel('Frequency')
-    ax_knn.tick_params(direction='in')
-    ax_knn.set_box_aspect(1)
+### Save the simulated positions of the molecules
 
+np.save(pos_filename + '.npy', sim_pos)
 
-# =============================================================================
-# Plot experimental data for comparison
-# =============================================================================
+### Create config file with parameters
 
-#TODO: match experimental and simulated coordinates [fixed]
+config = configparser.ConfigParser()
 
-path = r'well6_resting_RESI/'
-filename = r'All_RESI_centers_noZ.hdf5'
+config['params'] = {
 
-filepath = os.path.join(path, filename)
-df = pd.read_hdf(filepath, key = 'locs')
+'Date and time': str(datetime.now()),
+'K NN': K,
+'D': D,
+'mult': mult,
+'d_dimer (nm)': D_dimer,
+'density_d (nm^-2)': 180e-6,
+'density_m (nm^-2)': 300e-6,
+'σ_label (nm)': σ_label,
+'width (nm)': width,
+'height (nm)': height,
+'mask resolution': dx,
+'distribution': distribution,
+'labeling efficiency': p,
+'mask filename': mask_filename + '.npy'}
 
-cam_px_size = 130 # in nm
+with open(nnd_filename + '_params.txt', 'w') as configfile:
+    config.write(configfile)
 
+# # =============================================================================
+# # Plot simulated data
+# # =============================================================================
 
-x = df.x * cam_px_size 
-y = df.y * cam_px_size 
-
-pos_exp = np.array([x, y]).T
-
-from sklearn.neighbors import NearestNeighbors
-
-### NN calculation ###
-    
-nbrs = NearestNeighbors(n_neighbors=5).fit(pos_exp) # find nearest neighbours
-_distances_exp, _indices_exp = nbrs.kneighbors(pos_exp) # get distances and indices
-# distances = _distances[:, 1] # get the first neighbour distances
-
-colors = ['#2880C4', '#97D8C4', '#F4B942', '#363636']
+# colors = ['#2880C4', '#97D8C4', '#F4B942', '#363636']
 # fig_knn, ax_knn = plt.subplots(figsize=(5, 5))
+# fig_knn.suptitle('NN distances')
 
-for i in range(4):
+# for i in range(K):
+    
+#     # plot histogram of nn-distance of the simulation
+        
+#     distances = sim_nnd[:, i+1] # get the first neighbour distances
+        
+#     freq, bins = np.histogram(distances, bins=200, density=True)
+#     bin_centers = (bins[:-1] + bins[1:]) / 2
 
-    # plot histogram of nn-distance of the simulation
+#     ax_knn.plot(bin_centers, freq, color=colors[i], linewidth=2, 
+#                 label='uniform '+str(i+1)+'st-NN')
     
-    distances_exp = _distances_exp[:, i+1] # get the first neighbour distances
+#     plt.tight_layout()
     
-    bins = np.arange(0, 1000, 4)
+#     ax_knn.set_xlim([0, 100])
+#     ax_knn.set_ylim([0, 0.022])
+        
+#     ax_knn.set_xlabel('K-th nearest-neighbour distance (nm)')
+#     ax_knn.set_ylabel('Frequency')
+#     ax_knn.tick_params(direction='in')
+#     ax_knn.set_box_aspect(1)
+    
+# # =============================================================================
+# # Plot experimental data for comparison
+# # =============================================================================
+
+# # Ivo STING protein
+
+# # path = r'well6_resting_RESI/'
+# # filename = r'All_RESI_centers_noZ.hdf5'
+
+# # Susi FA
+
+# path = r'forLuciano/'
+# filename = r'K2_picked_mask_in_resi_7_15.hdf5'
+
+# filepath = os.path.join(path, filename)
+# df = pd.read_hdf(filepath, key = 'locs')
+
+# cam_px_size = 130 # in nm
+
+# x = df.x * cam_px_size 
+# y = df.y * cam_px_size 
+
+# pos_exp = np.array([x, y]).T
+
+# from sklearn.neighbors import NearestNeighbors
+
+# ### NN calculation ###
+    
+# nbrs = NearestNeighbors(n_neighbors=5).fit(pos_exp) # find nearest neighbours
+# _distances_exp, _indices_exp = nbrs.kneighbors(pos_exp) # get distances and indices
+# # distances = _distances[:, 1] # get the first neighbour distances
+
+# colors = ['#2880C4', '#97D8C4', '#F4B942', '#363636']
+# # fig_knn, ax_knn = plt.subplots(figsize=(5, 5))
+
+# for i in range(4):
+
+#     # plot histogram of nn-distance of the simulation
+    
+#     distances_exp = _distances_exp[:, i+1] # get the first neighbour distances
+    
+#     bins = np.arange(0, 1000, 4)
             
-    ax_knn.hist(distances_exp, bins=bins, alpha=0.5, color=colors[i], edgecolor='black', linewidth=0.1, density=True)
+#     ax_knn.hist(distances_exp, bins=bins, alpha=0.5, color=colors[i], edgecolor='black', linewidth=0.1, density=True)
 
-    ax_knn.set_xlim([0, 200])
-    ax_knn.set_ylim([0, 0.025])
+#     ax_knn.set_xlim([0, 200])
+#     ax_knn.set_ylim([0, 0.025])
     
-    ax_knn.set_xlabel('K-th nearest-neighbour distance (nm)')
-    ax_knn.set_ylabel('Frequency')
-    ax_knn.tick_params(direction='in')
-    ax_knn.set_box_aspect(1)
+#     ax_knn.set_xlabel('K-th nearest-neighbour distance (nm)')
+#     ax_knn.set_ylabel('Frequency')
+#     ax_knn.tick_params(direction='in')
+#     ax_knn.set_box_aspect(1)
     
-    plt.tight_layout()
+#     plt.tight_layout()
     
-mask_area = mask.sum() * dx**2 
+# # =============================================================================
+# # plot 1st NN and compared to only monomers distribution
+# # =============================================================================
+    
+# colors = ['#2D7DD2']
+# fig_1stnn, ax_1stnn = plt.subplots(figsize=(5, 5))
+# fig_1stnn.suptitle('1st NN distances')
 
-print('Observed density = ', 1e6 * pos.shape[0]/mask_area, 'molecules per μm^2')
+# for i in range(1):
 
-# =============================================================================
-# plot 1st NN and compared to only monomers distribution
-# =============================================================================
-    
-colors = ['#2D7DD2']
-fig_1stnn, ax_1stnn = plt.subplots(figsize=(5, 5))
+#     # plot histogram of nn-distance of the simulation
 
-for i in range(1):
+#     distances = sim_nnd[:, i+1] # get the first neighbour distances
+    
+#     freq, bins = np.histogram(distances, bins=200, density=True)
+#     bin_centers = (bins[:-1] + bins[1:]) / 2
+    
+#     bins = np.arange(0, 1000, 4)
+#     ax_1stnn.hist(_distances_exp[:, i+1], bins=bins, alpha=0.5, 
+#                   color='#2880C4', edgecolor='black', linewidth=0.1, 
+#                   density=True)
+    
+#     ax_1stnn.plot(bin_centers, freq, color=colors[i], linewidth=2, 
+#                 label='uniform '+str(i+1)+'st-NN')
+    
+#     plt.tight_layout()
+    
+    
+# ax_1stnn.set_xlim([0, 100])
+# ax_1stnn.set_ylim([0, 0.022])
 
-    # plot histogram of nn-distance of the simulation
-
-    distances = sim_nnd[:, i+1] # get the first neighbour distances
-    
-    freq, bins = np.histogram(distances, bins=200, density=True)
-    bin_centers = (bins[:-1] + bins[1:]) / 2
-    
-    bins = np.arange(0, 1000, 4)
-    ax_1stnn.hist(_distances_exp[:, i+1], bins=bins, alpha=0.5, 
-                  color='#2880C4', edgecolor='black', linewidth=0.1, 
-                  density=True)
-    
-    ax_1stnn.plot(bin_centers, freq, color=colors[i], linewidth=2, 
-                label='uniform '+str(i+1)+'st-NN')
-    
-    plt.tight_layout()
-    
-    
-ax_1stnn.set_xlim([0, 100])
-ax_1stnn.set_ylim([0, 0.022])
-
-ax_1stnn.set_xlabel('K-th nearest-neighbour distance (nm)')
-ax_1stnn.set_ylabel('Frequency')
-ax_1stnn.tick_params(direction='in')
-ax_1stnn.set_box_aspect(1)
+# ax_1stnn.set_xlabel('K-th nearest-neighbour distance (nm)')
+# ax_1stnn.set_ylabel('Frequency')
+# ax_1stnn.tick_params(direction='in')
+# ax_1stnn.set_box_aspect(1)
 

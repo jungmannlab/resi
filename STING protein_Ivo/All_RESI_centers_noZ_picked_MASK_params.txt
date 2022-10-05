@@ -1,0 +1,10 @@
+[params]
+date and time = 2022-10-04 17:04:07.129679
+px_size (nm) = 130
+margin (nm) = 50
+bin size (nm) = 10
+gaussian blur sigma (units of bin size) = 6
+mask digital resolution (nm) = 5
+observed density (μm^-2) = 233.67022696850543
+mask file name = All_RESI_centers_noZ_picked_MASK.npy
+

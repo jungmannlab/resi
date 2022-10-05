@@ -1,0 +1,10 @@
+[params]
+date and time = 2022-10-05 17:00:52.224854
+px_size (nm) = 130
+margin (nm) = 50
+bin size (nm) = 10
+gaussian blur sigma (units of bin size) = 6
+mask digital resolution (nm) = 5
+observed density (μm^-2) = 479.5512387679842
+mask file name = K2_picked_mask_in_resi_7_15_MASK.npy
+

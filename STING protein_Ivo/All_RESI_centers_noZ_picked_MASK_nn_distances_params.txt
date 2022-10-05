@@ -1,0 +1,16 @@
+[params]
+date and time = 2022-10-05 16:42:21.764955
+k nn = 4
+d = 2
+mult = 2
+d_dimer (nm) = 10
+density_d (nm^-2) = 0.00018
+density_m (nm^-2) = 0.0003
+σ_label (nm) = 5
+width (nm) = 15975.0
+height (nm) = 15975.0
+mask resolution = 5.0
+distribution = uniform
+labeling efficiency = 0.5
+mask filename = All_RESI_centers_noZ_picked_MASK.npy
+

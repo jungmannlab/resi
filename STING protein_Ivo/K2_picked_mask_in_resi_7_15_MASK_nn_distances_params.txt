@@ -1,0 +1,16 @@
+[params]
+date and time = 2022-10-05 17:02:26.352715
+k nn = 4
+d = 2
+mult = 2
+d_dimer (nm) = 16
+density_d (nm^-2) = 0.00018
+density_m (nm^-2) = 0.0003
+σ_label (nm) = 2
+width (nm) = 23115.0
+height (nm) = 23115.0
+mask resolution = 5.0
+distribution = uniform
+labeling efficiency = 0.5
+mask filename = K2_picked_mask_in_resi_7_15_MASK.npy
+
