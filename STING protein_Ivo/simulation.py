@@ -25,12 +25,13 @@ plt.close('all')
 # Susi focal adhesions
 mask_filename = 'K2_picked_mask_in_resi_7_15_MASK'
 
-pos_filename = mask_filename + 'simulated_pos'
-nnd_filename = mask_filename + '_nn_distances'
-
 mask = np.load(mask_filename + '.npy')
 xedges = np.load(mask_filename + '_xedges.npy')
 yedges = np.load(mask_filename + '_yedges.npy')
+
+# ouptut filenames
+pos_filename = mask_filename + 'simulated_pos'
+nnd_filename = mask_filename + '_nn_distances'
 
 # =============================================================================
 # Experimental parameters
