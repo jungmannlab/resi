@@ -22,8 +22,8 @@ D = 2 # dimension of the simulation, d = 2 for 2D case, d = 3 for 3D
 mult = 2 # multiplicity of the molecular assembly (e.g. mult = 2 for dimers)
 
 D_dimer = 12 # real dimer distance in nm
-density_d = 50e-6 # molecules per nm^2 (or nm^3)
-density_m = 50e-6 # molecules per nm^2 (or nm^3)
+density_d = 0e-6 # molecules per nm^2 (or nm^3)
+density_m = 100e-6 # molecules per nm^2 (or nm^3)
 
 σ_label = 5 # nm
 width = 40e3 # width of the simulated area in nm
