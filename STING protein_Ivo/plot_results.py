@@ -22,6 +22,11 @@ params = config['params']
 # read the simulated nnd
 sim_nnd = np.load('K2_picked_mask_in_resi_7_15_MASK_nn_distances.npy')
 
+# sim_nnd = np.load('linear_masks_nn_distances.npy')
+
+sim_nnd = np.load('circular_masks_nn_distances.npy')
+
+
 K = int(params['k nn'])
 
 # =============================================================================

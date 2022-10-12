@@ -23,11 +23,19 @@ plt.close('all')
 # mask_filename = 'All_RESI_centers_noZ_picked_MASK'
 
 # Susi focal adhesions
-mask_filename = 'K2_picked_mask_in_resi_7_15_MASK'
+# mask_filename = 'K2_picked_mask_in_resi_7_15_MASK'
+
+# mask = np.load(mask_filename + '.npy')
+# xedges = np.load(mask_filename + '_xedges.npy')
+# yedges = np.load(mask_filename + '_yedges.npy')
+
+# CD20 circular masks
+
+mask_filename = 'circular_masks'
 
 mask = np.load(mask_filename + '.npy')
-xedges = np.load(mask_filename + '_xedges.npy')
-yedges = np.load(mask_filename + '_yedges.npy')
+yedges = np.arange(0, 5000, 1)
+xedges = np.arange(0, 5000, 1)
 
 # ouptut filenames
 pos_filename = mask_filename + 'simulated_pos'
@@ -45,8 +53,8 @@ D = 2 # dimension of the simulation, d = 2 for 2D case, d = 3 for 3D
 mult = 2 # multiplicity of the molecular assembly (e.g. mult = 2 for dimers)
 
 D_dimer = 12 # real dimer distance in nm
-density_d = 600e-6 # molecules per nm^2 (or nm^3)
-density_m = 200e-6 # molecules per nm^2 (or nm^3)
+density_d = 1000e-6 # molecules per nm^2 (or nm^3)
+density_m = 500e-6 # molecules per nm^2 (or nm^3)
 
 dx = xedges[1] - xedges[0] # in nm
 σ_label = 5 # nm
@@ -74,7 +82,7 @@ N_m = int(density_m * width * height)
 
 plot_examples = False # Warning: only use for nsamples = 1, otherwise too many plots
 
-nsamples = 10
+nsamples = 30
 
 sim_nnd = []
 sim_pos = []
@@ -84,6 +92,8 @@ sim_pos = []
 # =============================================================================
 
 for s in range(nsamples):
+    
+    print(s)
 
     c_pos_dim = np.zeros((N_d, D)) # initialize array of central positions for dimers
     c_pos_mon = np.zeros((N_m, D)) # initialize array of central positions for monomers

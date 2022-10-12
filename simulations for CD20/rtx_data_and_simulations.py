@@ -28,7 +28,6 @@ ax_knn.tick_params(direction='in')
 
 plt.tight_layout()
 
-
 filename = 'NND data RTX/well2_CHO_A3_GFPAlfaCd20_RTXAlexa647_GFPNb_apicked_varsD9_15.npz_RESI.npz'
 
 data = dict(np.load(filename))

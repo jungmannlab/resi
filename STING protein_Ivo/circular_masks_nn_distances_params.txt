@@ -1,5 +1,5 @@
 [params]
-date and time = 2022-10-12 15:12:45.449113
+date and time = 2022-10-12 15:59:40.129830
 k nn = 4
 d = 2
 mult = 2
@@ -7,10 +7,10 @@ d_dimer (nm) = 12
 density_d (nm^-2) = 0.00018
 density_m (nm^-2) = 0.0003
 σ_label (nm) = 5
-width (nm) = 23115.0
-height (nm) = 23115.0
-mask resolution = 5.0
+width (nm) = 4999
+height (nm) = 4999
+mask resolution = 1
 distribution = uniform
 labeling efficiency = 0.5
-mask filename = K2_picked_mask_in_resi_7_15_MASK.npy
+mask filename = circular_masks.npy
 
