@@ -84,8 +84,8 @@ mult = 2 # multiplicity of the molecular assembly (e.g. mult = 2 for dimers)
 labelling = True
 p = 0.5
 
-width = 300e3 # width of the simulated area in nm
-height = 300e3 # height of the simulated area in nm
+width = 50e3 # width of the simulated area in nm
+height = 50e3 # height of the simulated area in nm
 
 total_real_density = 100e-6 # molecules per nm^2 BEFORE labeling efficiency
 
@@ -262,7 +262,7 @@ for i, D in enumerate(D_array):
             sq_distance = np.sum((freq_exp_1nn - freq_sim_1nn)**2) # in nm^2
             sq_distance_array[i, j, k] = sq_distance
 
-            print('LS distnace =', np.around(sq_distance, 7))
+            print('LS distance =', np.around(sq_distance, 7))
             # print('Dimer density =', density_d)
             # print('Observed density = ', 1e6 * pos.shape[0]/(width*height), 'molecules per μm^2')
             

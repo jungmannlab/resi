@@ -1,0 +1,13 @@
+[params]
+date and time = 2022-10-17 14:20:52.030820
+d = 2
+mult = 2
+d_dimer (nm) = 13
+density_d (nm^-2) = 4.4e-05
+density_m (nm^-2) = 5.6e-05
+σ_label (nm) = 5
+width (nm) = 22000.0
+height (nm) = 20000.0
+distribution = uniform
+labeling efficiency = 0.5
+
