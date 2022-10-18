@@ -61,7 +61,7 @@ N_m = int(density_m * width * height)
 plot_examples = True
 
 
-for j in range(1):
+for j in range(100):
     
     # =============================================================================
     # simulate molecules positions and calculate distances

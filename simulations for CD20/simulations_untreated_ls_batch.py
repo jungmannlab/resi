@@ -29,7 +29,7 @@ density_d_opt_array = np.zeros(nfiles)
 for a in range(nfiles):
 
     print(a)
-    filename = 'sim_data_exp_res/' + 'CD20_1stnn_sim' + str(a) + '.npy'
+    filename = 'sim_data_exp_res_2/' + 'CD20_1stnn_sim' + str(a) + '.npy'
  
     # compute histogram of nn-distance of the simulation
     
@@ -60,17 +60,17 @@ for a in range(nfiles):
     
     total_real_density = 100e-6 # molecules per nm^2 BEFORE labeling efficiency
     
-    D_array_start = 10
-    D_array_stop = 16
+    D_array_start = 12
+    D_array_stop = 15
     
-    σ_label_start = 2
-    σ_label_stop = 8
+    σ_label_start = 4
+    σ_label_stop = 7
     
     density_d_start = 39
     density_d_stop = 51
     
-    D_array = np.arange(D_array_start, D_array_stop, step=0.5)
-    σ_label_array = np.arange(σ_label_start, σ_label_stop, step=0.5)
+    D_array = np.arange(D_array_start, D_array_stop, step=0.25)
+    σ_label_array = np.arange(σ_label_start, σ_label_stop, step=0.25)
     density_d_array = np.arange(density_d_start, density_d_stop, step=1)
     
     sq_distance_array = np.zeros((len(D_array), len(σ_label_array), len(density_d_array)))
@@ -253,10 +253,10 @@ for a in range(nfiles):
     σ_opt_array[a] = σ_opt
     density_d_opt_array[a] = density_d_opt
 
-np.save('sq_distance_array.npy', sq_distance_array)
+np.save('sq_distance_array_2.npy', sq_distance_array)
 
-np.save('D_opt_array.npy', D_opt_array)
-np.save('density_d_opt_array.npy', density_d_opt_array)
-np.save('σ_label_opt_array.npy', σ_opt_array)
+np.save('D_opt_array_2.npy', D_opt_array)
+np.save('density_d_opt_array_2.npy', density_d_opt_array)
+np.save('σ_label_opt_array_2.npy', σ_opt_array)
 
 
