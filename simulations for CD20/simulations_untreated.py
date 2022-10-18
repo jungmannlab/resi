@@ -9,6 +9,8 @@ Created on Wed May 25 16:48:42 2022
 import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
+from sklearn.neighbors import NearestNeighbors
+
 
 plt.close('all')
 
@@ -116,12 +118,6 @@ if plot_examples:
     ax1.set_xlim(width/2, width/2 + length)
     ax1.set_ylim(width/2, width/2 + length)
         
-# =============================================================================
-# NN calculation
-# =============================================================================
-
-from sklearn.neighbors import NearestNeighbors
-
 # flatten the array to get all molecules positions together
 pos_dim = np.concatenate((pos_dim[:, :, 0], pos_dim[:, :, 1]), axis=0) 
 pos_mon = c_pos_mon # for monomers the array stays the same
@@ -212,7 +208,6 @@ y = data['new_com_y_cluster']*130
 
 pos_exp = np.array([x, y]).T
 
-from sklearn.neighbors import NearestNeighbors
 
 ### NN calculation ###
     
