@@ -11,35 +11,39 @@ import matplotlib.pyplot as plt
 
 plt.close('all')
 
-D_opt_array = np.load('D_opt_array_2.npy')
-σ_label_opt_array = np.load('σ_label_opt_array_2.npy')
-density_d_opt_array = np.load('density_d_opt_array_2.npy')
+# D_opt_array = np.load('D_opt_array_2.npy')
+# σ_label_opt_array = np.load('σ_label_opt_array_2.npy')
+# density_d_opt_array = np.load('density_d_opt_array_2.npy')
+
+D_opt_array = np.load('D_opt_array_3.npy')
+σ_label_opt_array = np.load('σ_label_opt_array_3.npy')
+density_d_opt_array = np.load('density_d_opt_array_3.npy')
 
 fig0, ax0 = plt.subplots()
 
-bins = np.arange(12, 15, step=0.5) - .25
-ax0.hist(D_opt_array, width=0.5 ,linewidth=1, alpha=0.5, edgecolor='k', bins=bins)
+bins = np.arange(12, 15, step=0.25) - .125
+ax0.hist(D_opt_array, width=0.25, linewidth=1, alpha=0.5, edgecolor='k', bins=bins)
 ax0.set_xlim(12, 15)
 ax0.set_box_aspect(1)
 
 ax0.set_xlabel('D (nm)')
 ax0.set_ylabel('Counts')
 
-ax0.text(14.0, 65, 'mean= ' + str(np.around(np.mean(D_opt_array), 2)) + ' nm')
-ax0.text(14.0, 60, 'std = ' + str(np.around(np.std(D_opt_array), 2)) + ' nm')
+ax0.text(14.0, 22, 'mean= ' + str(np.around(np.mean(D_opt_array), 2)) + ' nm')
+ax0.text(14.0, 20, 'std = ' + str(np.around(np.std(D_opt_array), 2)) + ' nm')
 
 fig1, ax1 = plt.subplots()
 
-bins = np.arange(4, 7, step=0.5) - .25
-ax1.hist(σ_label_opt_array, width=0.5, linewidth=1, alpha=0.5, edgecolor='k', bins=bins)
+bins = np.arange(4, 7, step=0.25) - .125
+ax1.hist(σ_label_opt_array, width=0.25, linewidth=1, alpha=0.5, edgecolor='k', bins=bins)
 ax1.set_xlim(4, 7)
 ax1.set_box_aspect(1)
 
 ax1.set_xlabel('σ_label (nm)')
 ax1.set_ylabel('Counts')
 
-ax1.text(6.0, 65, 'mean= ' + str(np.around(np.mean(σ_label_opt_array), 2)) + ' nm')
-ax1.text(6.0, 60, 'std = ' + str(np.around(np.std(σ_label_opt_array), 2)) + ' nm')
+ax1.text(6.0, 26, 'mean= ' + str(np.around(np.mean(σ_label_opt_array), 2)) + ' nm')
+ax1.text(6.0, 23, 'std = ' + str(np.around(np.std(σ_label_opt_array), 2)) + ' nm')
 
 fig2, ax2 = plt.subplots()
 

@@ -24,12 +24,12 @@ D = 2 # dimension of the simulation, d = 2 for 2D case, d = 3 for 3D
 mult = 2 # multiplicity of the molecular assembly (e.g. mult = 2 for dimers)
 
 D_dimer = 13.5 # real dimer distance in nm
-density_d = 47e-6 # molecules per nm^2 (or nm^3)
-density_m = 53e-6 # molecules per nm^2 (or nm^3)
+density_d = 0e-6 # molecules per nm^2 (or nm^3)
+density_m = 100e-6 # molecules per nm^2 (or nm^3)
 
 σ_label = 5.5 # nm
-width = 600e3 # width of the simulated area in nm
-height = 600e3 # height of the simulated area in nm
+width = 100e3 # width of the simulated area in nm
+height = 100e3 # height of the simulated area in nm
 depth = 5e3 # depth of the simulated area in nm
 
 dim_color = '#009FB7'
