@@ -76,7 +76,7 @@ mult = 6 # multiplicity of the molecular assembly (e.g. mult = 2 for dimers)
 R = 20 # real dimer distance in nm
 dθ = 1.3 * π/6
 
-density_hex = 100e-6 # molecules per nm^2 (or nm^3)
+density_hex = 212e-6 # molecules per nm^2 (or nm^3)
 density_m = 0e-6 # molecules per nm^2 (or nm^3)
 
 σ_label = 5.5 / np.sqrt(2) # nm
