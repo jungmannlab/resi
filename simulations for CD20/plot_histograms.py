@@ -19,7 +19,7 @@ folder_exp = 'clusters RTX exp data/'
 filename_exp = 'well2_CHO_A3_GFPAlfaCd20_RTXAlexa647_GFPNb_R1_300pM_1_MMStack_Pos0.ome_locs2000_RCC1000_pick48_filter13_apicked_resi_9_15_picked_multi_dbclusters_30.0_2.hdf5'
 data_exp = pd.read_hdf(folder_exp + filename_exp, key = 'locs')
 
-c_exp = '#2880C4'
+c_exp = '#388697'
 
 px_size = 130
 
