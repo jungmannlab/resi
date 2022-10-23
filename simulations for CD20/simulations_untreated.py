@@ -24,12 +24,12 @@ D = 2 # dimension of the simulation, d = 2 for 2D case, d = 3 for 3D
 mult = 2 # multiplicity of the molecular assembly (e.g. mult = 2 for dimers)
 
 D_dimer = 13.5 # real dimer distance in nm
-density_d = 0e-6 # molecules per nm^2 (or nm^3)
-density_m = 100e-6 # molecules per nm^2 (or nm^3)
+density_d = 47e-6 # molecules per nm^2 (or nm^3)
+density_m = 53e-6 # molecules per nm^2 (or nm^3)
 
 σ_label = 5.5 # nm
-width = 100e3 # width of the simulated area in nm
-height = 100e3 # height of the simulated area in nm
+width = 400e3 # width of the simulated area in nm
+height = 400e3 # height of the simulated area in nm
 depth = 5e3 # depth of the simulated area in nm
 
 dim_color = '#009FB7'
@@ -175,12 +175,12 @@ for i in range(4):
     freq, bins = np.histogram(distances, bins=200, density=True)
     bin_centers = (bins[:-1] + bins[1:]) / 2
     
-    # if i == 0:
+    if i == 0:
     
-    #     data_aux = np.zeros((2, len(freq)))
-    #     data_aux[0, :] = bin_centers
-    #     data_aux[1, :] = freq
-    #     np.save('data_only_mon.npy', data_aux)
+        data_aux = np.zeros((2, len(freq)))
+        data_aux[0, :] = bin_centers
+        data_aux[1, :] = freq
+        np.save('data_dim_and_mon.npy', data_aux)
 
     ax_knn.plot(bin_centers, freq, color=colors[i], linewidth=2, 
                 label='uniform '+str(i+1)+'st-NN')
