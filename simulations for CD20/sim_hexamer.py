@@ -121,7 +121,7 @@ if D == 2:
   
 if PLOTS:
     
-    fig0, ax0 = plt.subplots() # dimers
+    fig0, ax0 = plt.subplots() # hexamers
     fig0.suptitle('Hexamers + their center + monomers')
     # fig1, ax1 = plt.subplots() # monomers
     # fig1.suptitle('Monomers')
@@ -134,6 +134,13 @@ if PLOTS:
     ax0.set_box_aspect(1)
     
     ax0.scatter(c_pos_mon[:, 0], c_pos_mon[:, 1], alpha=0.5, color=mon_color)
+    
+    fig1, ax1 = plt.subplots() # ideal case
+    
+    ax1.scatter(c_pos_hex[:, 0], c_pos_hex[:, 1], alpha=0.5, marker='*')
+    ax1.set_box_aspect(1)
+
+
     
     # ax0.set_xlabel('x (nm)')
     # ax0.set_ylabel('y (nm)')
@@ -153,15 +160,22 @@ if PLOTS:
 x = R * np.cos(θ + θ_offset)
 y = R * np.sin(θ + θ_offset)
 
+x_ideal = x.copy()
+y_ideal = y.copy()
+
 x = np.random.normal(loc=x, scale=σ_label) # distances of molecule 0 to the dimer center
 y = np.random.normal(loc=y, scale=σ_label) # distances of molecule 1 to the dimer center
+
 
 pos_x = x + np.repeat(c_pos_hex[:, 0], mult)
 pos_y = y + np.repeat(c_pos_hex[:, 1], mult)
 
 pos_hex = np.array([pos_x, pos_y]).T
 
-# pos_hex = np.array([x, y]) + np.tile(c_pos_hex.T, (2, 6, 1))
+pos_x_ideal = x_ideal + np.repeat(c_pos_hex[:, 0], mult)
+pos_y_ideal = y_ideal + np.repeat(c_pos_hex[:, 1], mult)
+
+pos_hex_ideal = np.array([pos_x_ideal, pos_y_ideal]).T
 
 if PLOTS:
     
@@ -169,17 +183,21 @@ if PLOTS:
     ax0.scatter(pos_x, pos_y, alpha=0.5, 
                 color=hex_color)
     
+    ax1.scatter(pos_x_ideal, pos_y_ideal, alpha=0.5, color=hex_color)
+    
     for i in range(len(c_pos_hex[:, 0])):
         circle1 = plt.Circle((c_pos_hex[i, 0], c_pos_hex[i, 1]), R, fill=False, linestyle='--', color = 'k')
         ax0.add_artist(circle1)
+        circle1 = plt.Circle((c_pos_hex[i, 0], c_pos_hex[i, 1]), R, fill=False, linestyle='--', color = 'k')
+        ax1.add_artist(circle1)
     
     length = 500 # nm, length of the display area for the graph
     
     ax0.set_xlim(width/2, width/2 + length)
     ax0.set_ylim(width/2, width/2 + length)
     
-    # ax1.set_xlim(width/2, width/2 + length)
-    # ax1.set_ylim(width/2, width/2 + length)
+    ax1.set_xlim(width/2, width/2 + length)
+    ax1.set_ylim(width/2, width/2 + length)
 
 pos_mon = c_pos_mon
 pos = np.concatenate((pos_hex, pos_mon)) 
@@ -232,7 +250,7 @@ ax_knn.set_box_aspect(1)
 # =============================================================================
 
 path = r'/Users/masullo/Documents/GitHub/RESI/simulations for CD20'
-filename = 'simulated_hexamers'
+filename = 'simulated_hexamers_width_' + str(width)
 
 px_size = 130
 width  = width/px_size
