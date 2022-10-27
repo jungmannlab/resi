@@ -23,7 +23,7 @@ fig, ax = plt.subplots()
 
 n_array = np.arange(2, 20)
 
-for m in np.arange(0, 6):
+for m in np.arange(1, 6):
     
    ax.plot(n_array, 100 * prob(n_array, m), '-o', label='m = '+str(m))
 
