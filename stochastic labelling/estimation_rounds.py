@@ -10,6 +10,7 @@ import numpy as np
 from scipy.special import factorial
 import matplotlib.pyplot as plt
 
+plt.close('all')
 
 def prob(n, m):
     """ 
@@ -23,10 +24,14 @@ fig, ax = plt.subplots()
 
 n_array = np.arange(2, 20)
 
-for m in np.arange(0, 6):
-    
-   ax.plot(n_array, 100 * prob(n_array, m), '-o', label='m = '+str(m))
+markers = ["o", "^", "s", "*", "p"]
+colors = ["#fa8334", "#685369", "#90E39A", "#388697", "#271033"]
 
+for i, m in enumerate(np.arange(1, 6)):
+    
+   ax.plot(n_array, 100 * prob(n_array, m), '-', marker=markers[i],
+           color=colors[i], label='m = '+str(m))
+   
 ax.set_xticks(np.arange(2, 20, 2))
 ax.legend()
 

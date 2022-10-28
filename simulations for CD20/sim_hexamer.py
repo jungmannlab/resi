@@ -126,7 +126,7 @@ if PLOTS:
     # fig1, ax1 = plt.subplots() # monomers
     # fig1.suptitle('Monomers')
               
-    ax0.scatter(c_pos_hex[:, 0], c_pos_hex[:, 1], alpha=0.5, marker='*')
+    # ax0.scatter(c_pos_hex[:, 0], c_pos_hex[:, 1], alpha=0.5, marker='*')
     
     ax0.set_xlabel('x (nm)')
     ax0.set_ylabel('y (nm)')
@@ -137,7 +137,7 @@ if PLOTS:
     
     fig1, ax1 = plt.subplots() # ideal case
     
-    ax1.scatter(c_pos_hex[:, 0], c_pos_hex[:, 1], alpha=0.5, marker='*')
+    # ax1.scatter(c_pos_hex[:, 0], c_pos_hex[:, 1], alpha=0.5, marker='*')
     ax1.set_box_aspect(1)
 
 
