@@ -328,7 +328,7 @@ class Origami():
     	if save==True:
     		title_2 = title+".pdf"
     		where_to = os.path.join(self.output_location, title_2)
-    		plt.savefig(where_to, transparent=False, bbox_inches='tight')
+    	plt.savefig(where_to, transparent=False, bbox_inches='tight')
     	plt.close()
 
 
@@ -366,7 +366,7 @@ def Cycler(parent_folder, R1_clusters, R3_clusters, R1_all, R3_all, number):
 	return(path_R1_c, path_R3_c, path_R1_a, path_R3_a)
 
 
-parent_folder = "/Volumes/pool-miblab4/users/steen/z.microscopy_raw/02_Project_RESI/211221_RESI_newVoyager_FusionBT_R1R3_nodel/resi-analysis_2/"
+parent_folder = "parent-folder-path/"
 
 R1_clusters = ["R1_picked_ori", "_ClusterD4_50.hdf5"]
 R3_clusters = ["R3_picked_ori", "_aligned_ClusterD4_50.hdf5"]
@@ -382,7 +382,7 @@ numbers = ["2", "3"]
 
 #out_path = "./outputs/"
 
-out_path = "/Users/steen/Projects/RESI/figures_out/"
+out_path = "output-path/"
 
 for index, value in enumerate(numbers):
 	R1_c, R3_c, R1_a, R3_a = Cycler(parent_folder, R1_clusters, R3_clusters, R1_all, R3_all, value)
