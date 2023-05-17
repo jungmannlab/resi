@@ -1,0 +1,176 @@
+Byte Order: <
+Camera: Andor sCMOS Camera
+Data Type: uint16
+File: W:\users\ibaudrexel\z.microscopy_raw\20211206_CHO_GFPAlfaCD20\well2_LTX_RESI_GFPNb_R1_400pM_2\well2_LTX_RESI_GFPNb_R1_400pM_2_MMStack_Pos0.ome.tif
+Frames: 40000
+Height: 512
+Micro-Manager Acquisiton Comments: ''
+Micro-Manager Metadata:
+  Andor sCMOS Camera-AccumulateCount: '1'
+  Andor sCMOS Camera-AcquisitionWindow: Custom AOI (512x512)
+  Andor sCMOS Camera-AuxiliaryOutSource (TTL I/O): FireAll
+  Andor sCMOS Camera-AuxiliaryOutTwoSource (TTL I/O): ExternalShutterControl
+  Andor sCMOS Camera-Binning: 2x2
+  Andor sCMOS Camera-CameraFirmware: 15.8.12.0
+  Andor sCMOS Camera-CameraID: VSC-10159
+  Andor sCMOS Camera-CameraModel: ZYLA-4.2P-USB3
+  Andor sCMOS Camera-CameraName: Zyla 4.2 USB3
+  Andor sCMOS Camera-CurrentSoftware: 3.13.30034.0
+  Andor sCMOS Camera-Description: SDK3 Device Adapter for sCMOS cameras
+  Andor sCMOS Camera-ElectronicShutteringMode: Rolling
+  Andor sCMOS Camera-Exposure: '80.00'
+  Andor sCMOS Camera-Ext (Exp) Trigger Timeout[ms]: '5000'
+  Andor sCMOS Camera-FanSpeed: 'On'
+  Andor sCMOS Camera-FrameRate: '4.4525'
+  Andor sCMOS Camera-FrameRateLimits: 'Min: 4.45252  Max: 4.99960  Max Sustain: 134.63637'
+  Andor sCMOS Camera-LightScanPlus-AlternatingReadoutDirection: 'Off'
+  Andor sCMOS Camera-LightScanPlus-ExposedPixelHeight: '8333'
+  Andor sCMOS Camera-LightScanPlus-ExternalTriggerDelay [s]: '0.0000'
+  Andor sCMOS Camera-LightScanPlus-LineScanSpeed [lines/sec]: '41666.6667'
+  Andor sCMOS Camera-LightScanPlus-RowReadTime: '0.0000'
+  Andor sCMOS Camera-LightScanPlus-ScanSpeedControlEnable: 'Off'
+  Andor sCMOS Camera-LightScanPlus-SensorReadoutMode: Centre Out Simultaneous
+  Andor sCMOS Camera-Overlap: 'On'
+  Andor sCMOS Camera-PixelEncoding: Mono16
+  Andor sCMOS Camera-PixelReadoutRate: 540 MHz - fastest readout
+  Andor sCMOS Camera-RollingShutterGlobalClear: 'Off'
+  Andor sCMOS Camera-Sensitivity/DynamicRange: 16-bit (low noise & high well capacity)
+  Andor sCMOS Camera-SensorCooling: 'On'
+  Andor sCMOS Camera-SensorTemperature: '9.5000'
+  Andor sCMOS Camera-ShutterOutputMode: Closed
+  Andor sCMOS Camera-ShutterTransferTime [s]: '0.0000'
+  Andor sCMOS Camera-SpuriousNoiseFilter: 'On'
+  Andor sCMOS Camera-StaticBlemishCorrection: 'On'
+  Andor sCMOS Camera-TemperatureControl: '0.00'
+  Andor sCMOS Camera-TemperatureStatus: Cooling
+  Andor sCMOS Camera-TransposeCorrection: '0'
+  Andor sCMOS Camera-TransposeMirrorX: '0'
+  Andor sCMOS Camera-TransposeMirrorY: '0'
+  Andor sCMOS Camera-TransposeXY: '0'
+  Andor sCMOS Camera-TriggerMode: Internal (Recommended for fast acquisitions)
+  Binning: 2
+  BitDepth: 16
+  COM12-AnswerTimeout: '500.0000'
+  COM12-BaudRate: '115200'
+  COM12-DataBits: '8'
+  COM12-DelayBetweenCharsMs: '0.0000'
+  COM12-Description: Serial port driver (boost:asio)
+  COM12-Handshaking: 'Off'
+  COM12-Name: COM12
+  COM12-Parity: None
+  COM12-StopBits: '1'
+  COM12-Verbose: '1'
+  Camera: Andor sCMOS Camera
+  ChannelIndex: 0
+  Core-AutoFocus: PFS
+  Core-AutoShutter: '1'
+  Core-Camera: Andor sCMOS Camera
+  Core-ChannelGroup: ''
+  Core-Focus: ZDrive
+  Core-Galvo: ''
+  Core-ImageProcessor: ''
+  Core-Initialize: '1'
+  Core-SLM: ''
+  Core-Shutter: Turret1Shutter
+  Core-TimeoutMs: '5000'
+  Core-XYStage: XYStage
+  ElapsedTime-ms: 1069
+  Exposure-ms: 79.9968
+  FileName: well2_LTX_RESI_GFPNb_R1_400pM_2_MMStack_Pos0.ome.tif
+  FilterTurret1-Label: 3-TIRF 561
+  FilterTurret1-State: '2'
+  Frame: 0
+  FrameIndex: 0
+  ImageNumber: 0
+  IntermediateMagnification-Magnification: 1.0x
+  LightPath-Label: 2-R100
+  LightPath-State: '1'
+  Nosepiece-Label: 1-Apo TIRF 100x Oil
+  Nosepiece-State: '0'
+  PFS-DichroicMirrorInserted: 'Yes'
+  PFS-FocusMaintenance: 'Off'
+  PFS-LEDIntensity: '92'
+  PixelSize_um: 0
+  PixelType: GRAY16
+  PositionIndex: 0
+  ROI: 255-255-512-512
+  Slice: 0
+  SliceIndex: 0
+  Turret1Shutter-State: '0'
+  UUID: dcaad882-d799-4c13-aa09-95f441994d1a
+  XPositionUm: -6422.400000000001
+  XYStage-Acceleration-AC(ms): '70'
+  XYStage-AxisLetterX: X
+  XYStage-AxisLetterY: Y
+  XYStage-Backlash-B: '0.0400'
+  XYStage-BuildName: STD_XY
+  XYStage-CompileDate: Apr 07 2017:11:55:40
+  XYStage-Description: ASI XY stage driver adapter
+  XYStage-EnableAdvancedProperties: 'No'
+  XYStage-Error-E(nm): '200.0000'
+  XYStage-FinishError-PCROS(nm): '6.0000'
+  XYStage-JoyStick Fast Speed: '60'
+  XYStage-JoyStick Reverse: 'Off'
+  XYStage-JoyStick Slow Speed: '5'
+  XYStage-Maximum Speed (Do Not Change): '1.9200'
+  XYStage-MotorOnOff: 'On'
+  XYStage-Name: XYStage
+  XYStage-OnlySendSerialCommandOnChange: 'Yes'
+  XYStage-OverShoot(um): '0.0000'
+  XYStage-Port: COM12
+  XYStage-SerialCommand: ''
+  XYStage-SerialResponse: ''
+  XYStage-Speed-S: '1.2864'
+  XYStage-StepSizeX_um: '0.0100'
+  XYStage-StepSizeY_um: '0.0100'
+  XYStage-TransposeMirrorX: '0'
+  XYStage-TransposeMirrorY: '0'
+  XYStage-VectorMoveX-VE(mm/s): '0.0000'
+  XYStage-VectorMoveY-VE(mm/s): '0.0000'
+  XYStage-Version: 'Version: USB-9.2k '
+  XYStage-Wait_Cycles: '0'
+  YPositionUm: -8717.1
+  ZPositionUm: 3441.64
+  completeCoords: null
+  receivedTime: 2021-12-06 09:54:41 +0100
+  userData: null
+Width: 512
+---
+Box Size: 7
+Generated by: Picasso Localize
+Min. Net Gradient: 1000
+Pixelsize: 130
+ROI: null
+---
+Generated by: Picasso Render
+Last driftfile: W:/users/ibaudrexel/z.microscopy_raw/20211206_CHO_GFPAlfaCD20/well2_LTX_RESI_GFPNb_R1_400pM_2/well2_LTX_RESI_GFPNb_R1_400pM_2_MMStack_Pos0.ome_locs_211206_173807_drift.txt
+---
+Generated by: Picasso Filter
+bg: null
+ellipticity: null
+frame: null
+lpx: null
+lpy: null
+net_gradient: null
+photons: null
+sx:
+- 0.2915139152486661
+- 1.2023975662607225
+sy:
+- 0.25401017196026476
+- 1.2044790056990364
+x: null
+y: null
+---
+Generated by: Picasso Render
+Last driftfile: null
+---
+Generated by: Picasso Render
+Last driftfile: null
+---
+Generated by: 'Picasso Render : Pick'
+Pick Shape: Rectangle
+Pick Width: 370.0
+---
+'Generated by:': Picasso Render
+'Pick Diameter:': 1.0
